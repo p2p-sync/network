@@ -13,6 +13,22 @@
             <id>tomp2p.net</id>
             <url>http://tomp2p.net/dev/mvn/</url>
         </repository>
+        <repository>
+            <id>commons-mvn-repo</id>
+            <url>https://raw.github.com/p2p-sync/commons/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>persistence-mvn-repo</id>
+            <url>https://raw.github.com/p2p-sync/persistence/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
     </repositories>
 
     <properties>
@@ -122,6 +138,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.rmatil.sync.commons</groupId>
+            <artifactId>sync-commons</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.rmatil.sync.persistence</groupId>
+            <artifactId>sync-persistence</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>net.tomp2p</groupId>
             <artifactId>tomp2p-dht</artifactId>
             <version>5.0-Beta6</version>
@@ -132,6 +158,11 @@
             <artifactId>tomp2p-replication</artifactId>
             <version>5.0-Beta6</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -158,5 +189,5 @@
             <url>file://${project.build.directory}/mvn-repo</url>
         </repository>
     </distributionManagement>
-    
+
 </project>
