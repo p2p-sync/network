@@ -4,13 +4,13 @@ public enum Config {
 
     DEFAULT("LOCATION");
 
-    private String locationsLocationKey;
+    private String locationsContentKey;
 
     Config(String locattionsLocationKey) {
-        this.locationsLocationKey = locattionsLocationKey;
+        this.locationsContentKey = locattionsLocationKey;
     }
 
-    public String getLocationsLocationKey() {
-        return locationsLocationKey;
+    public String getLocationsContentKey() {
+        return locationsContentKey;
     }
 }

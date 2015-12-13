@@ -35,7 +35,8 @@ public class LocationManager implements ILocationManager {
     public void addClientLocation(IUser user, ClientLocation location)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
-                Config.DEFAULT.getLocationsLocationKey(),
+                user.getUserName(),
+                Config.DEFAULT.getLocationsContentKey(),
                 user.getPublicKey()
         );
 
@@ -57,7 +58,8 @@ public class LocationManager implements ILocationManager {
             throws InputOutputException {
         // private key must be used to access for write
         DhtPathElement dhtPathElement = new DhtPathElement(
-                Config.DEFAULT.getLocationsLocationKey(),
+                user.getUserName(),
+                Config.DEFAULT.getLocationsContentKey(),
                 user.getPublicKey()
         );
 
@@ -78,7 +80,8 @@ public class LocationManager implements ILocationManager {
     public List<ClientLocation> getClientLocations(IUser user)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
-                Config.DEFAULT.getLocationsLocationKey(),
+                user.getUserName(),
+                Config.DEFAULT.getLocationsContentKey(),
                 user.getPublicKey()
         );
 

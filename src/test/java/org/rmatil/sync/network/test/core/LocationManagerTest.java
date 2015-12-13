@@ -106,14 +106,14 @@ public class LocationManagerTest {
             logger.error("Failed to bootstrap peers. Reason: " + futureBootstrap.failedReason());
         }
 
-        dhtStorageAdapter1 = new DhtStorageAdapter(peer1, Config.DEFAULT.getLocationsLocationKey());
-        dhtStorageAdapter2 = new DhtStorageAdapter(peer2, Config.DEFAULT.getLocationsLocationKey());
+        user1 = new User("testUser", keyPair1.getPublic(), new ArrayList<>());
+        user2 = new User("testUser2", keyPair2.getPublic(), new ArrayList<>());
+
+        dhtStorageAdapter1 = new DhtStorageAdapter(peer1);
+        dhtStorageAdapter2 = new DhtStorageAdapter(peer2);
 
         locationManager1 = new LocationManager(dhtStorageAdapter1);
         locationManager2 = new LocationManager(dhtStorageAdapter2);
-
-        user1 = new User("testUser", keyPair1.getPublic(), new ArrayList<>());
-        user2 = new User("testUser2", keyPair2.getPublic(), new ArrayList<>());
 
     }
 
@@ -130,9 +130,12 @@ public class LocationManagerTest {
         locationManager1.addClientLocation(user1, l1);
 
         List<ClientLocation> result = locationManager1.getClientLocations(user1);
+        List<ClientLocation> result2 = locationManager2.getClientLocations(user1);
 
         assertEquals("Result has different amount of locations saved", 1, result.size());
         assertThat("result does not contain location", result, hasItem(l1));
+        assertEquals("Result2 has different amount of locations saved", 1, result2.size());
+        assertThat("result2 does not contain location", result2, hasItem(l1));
     }
 
     @Test
@@ -144,10 +147,21 @@ public class LocationManagerTest {
         assertEquals("Result has different amount of locations saved", 1, result.size());
         assertThat("result does not contain location", result, hasItem(l1));
 
+        // this should not remove the location
+        locationManager2.removeClientLocation(user2, l1);
+        List<ClientLocation> result2 = locationManager1.getClientLocations(user1);
+        List<ClientLocation> result3 = locationManager2.getClientLocations(user1);
+        assertEquals("Result has different amount of locations saved", 1, result2.size());
+        assertThat("result does not contain location", result2, hasItem(l1));
+        assertEquals("Result has different amount of locations saved", 1, result3.size());
+        assertThat("result does not contain location", result3, hasItem(l1));
+
         locationManager1.removeClientLocation(user1, l1);
 
         List<ClientLocation> retAfterDeletion = locationManager1.getClientLocations(user1);
+        List<ClientLocation> retAfterDeletion2 = locationManager2.getClientLocations(user1);
         assertEquals("Result after deletion has different amount of locations saved", 0, retAfterDeletion.size());
+        assertEquals("Result2 after deletion has different amount of locations saved", 0, retAfterDeletion2.size());
     }
 
     @Test
@@ -157,8 +171,11 @@ public class LocationManagerTest {
         locationManager1.addClientLocation(user1, l2);
 
         List<ClientLocation> result = locationManager1.getClientLocations(user1);
+        List<ClientLocation> result2 = locationManager2.getClientLocations(user1);
         assertEquals("Result has not both locations in it", 2, result.size());
         assertThat("Result does not contain both locations", result, hasItems(l1, l2));
+        assertEquals("Result2 has not both locations in it", 2, result2.size());
+        assertThat("Result2 does not contain both locations", result2, hasItems(l1, l2));
     }
 
     @Test
