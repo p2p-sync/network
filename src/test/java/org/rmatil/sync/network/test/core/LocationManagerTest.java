@@ -121,6 +121,7 @@ public class LocationManagerTest {
     public void after()
             throws InputOutputException {
         locationManager1.removeClientLocation(user1, l1);
+        locationManager1.removeClientLocation(user1, l2);
     }
 
     @Test
@@ -158,9 +159,6 @@ public class LocationManagerTest {
         List<ClientLocation> result = locationManager1.getClientLocations(user1);
         assertEquals("Result has not both locations in it", 2, result.size());
         assertThat("Result does not contain both locations", result, hasItems(l1, l2));
-
-        // to not influence other tests
-        locationManager1.removeClientLocation(user1, l2);
     }
 
     @Test
