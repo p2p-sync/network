@@ -39,5 +39,5 @@ The location key in the DHT is the hash of the corresponding username, the conte
 
 > Owner of domain 0x1234 is peer where 0x1234 == hash(public_key)
 >
-> -- <cite>Stiller, B., Bocek, T. et al. (2016). P2P with TomP2P</cite>
+> -- <cite>Stiller, B., Bocek, T. et al. (2015). P2P with TomP2P</cite>
   
