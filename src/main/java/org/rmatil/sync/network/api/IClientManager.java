@@ -4,13 +4,15 @@ import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.List;
 
 /**
  * Provides access to the locations of
  * peers using their public key as peerId
  */
-public interface ILocationManager {
+public interface IClientManager {
 
     /**
      * Returns the storage adapter implementation of this manager
@@ -51,6 +53,50 @@ public interface ILocationManager {
      * @throws InputOutputException If getting failed
      */
     List<ClientLocation> getClientLocations(IUser user)
+            throws InputOutputException;
+
+    /**
+     * Adds the private key of the given user to the storage
+     *
+     * @param user The user of which the private key is added
+     *
+     * @throws InputOutputException If accessing storage layer failed
+     */
+    void addPrivateKey(IUser user)
+            throws InputOutputException;
+
+    /**
+     * Returns the private key of the user from storage
+     *
+     * @param user The user of which to get the private key
+     *
+     * @return The private key found
+     *
+     * @throws InputOutputException If accessing storage layer failed
+     */
+    PrivateKey getPrivateKey(IUser user)
+            throws InputOutputException;
+
+    /**
+     * Adds the public key of the given user to the storage layer
+     *
+     * @param user The user of which to add its public key
+     *
+     * @throws InputOutputException
+     */
+    void addPublicKey(IUser user)
+            throws InputOutputException;
+
+    /**
+     * Returns the public key of the given user
+     *
+     * @param user The user of which to get the public key
+     *
+     * @return The found public key
+     *
+     * @throws InputOutputException If accessing the storage layer failed
+     */
+    PublicKey getPublicKey(IUser user)
             throws InputOutputException;
 
 }

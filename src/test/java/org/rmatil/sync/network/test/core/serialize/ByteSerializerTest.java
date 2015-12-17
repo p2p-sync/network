@@ -1,11 +1,15 @@
 package org.rmatil.sync.network.test.core.serialize;
 
+import net.tomp2p.peers.Number160;
+import net.tomp2p.peers.PeerAddress;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.network.core.serialize.ByteSerializer;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,9 +24,13 @@ public class ByteSerializerTest {
     protected static ClientLocation l2;
 
     @BeforeClass
-    public static void before() {
-        l1 = new ClientLocation("123.456.78.90", 1234);
-        l2 = new ClientLocation("09.876.543.21", 4321);
+    public static void before()
+            throws UnknownHostException {
+        PeerAddress peerAddress = new PeerAddress(Number160.ONE, InetAddress.getLocalHost());
+        PeerAddress peerAddress2 = new PeerAddress(Number160.ZERO, InetAddress.getLocalHost());
+
+        l1 = new ClientLocation(peerAddress);
+        l2 = new ClientLocation(peerAddress2);
 
         locations.add(l1);
         locations.add(l2);

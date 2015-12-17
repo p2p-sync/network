@@ -1,5 +1,6 @@
 package org.rmatil.sync.network.core.model;
 
+import net.tomp2p.peers.PeerAddress;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -12,22 +13,15 @@ import java.io.Serializable;
 public class ClientLocation implements Serializable {
 
     /**
-     * The ip address of the client
+     * The peer address
      */
-    protected String ipAddress;
+    protected PeerAddress peerAddress;
 
     /**
-     * The port on which the client can be contacted
+     * @param peerAddress The peer address to add
      */
-    protected int port;
-
-    /**
-     * @param ipAddress The IP address of the client
-     * @param port      The port of the client
-     */
-    public ClientLocation(String ipAddress, int port) {
-        this.ipAddress = ipAddress;
-        this.port = port;
+    public ClientLocation(PeerAddress peerAddress) {
+        this.peerAddress = peerAddress;
     }
 
     /**
@@ -37,7 +31,7 @@ public class ClientLocation implements Serializable {
      * @return True, if the client uses an IPv4 address to contact
      */
     public boolean isIpV4() {
-        throw new RuntimeException("Not implemented");
+        return this.peerAddress.isIPv4();
     }
 
     /**
@@ -46,8 +40,25 @@ public class ClientLocation implements Serializable {
      * @return The IP address
      */
     public String getIpAddress() {
+        String ipAddress = "";
+        // in case the ip is v6, then a scope id identifying the interface is returned in the host address.
+        // since this information is not needed, we strip this out
+        String ipWithInterfaceScopeId = this.peerAddress.inetAddress().getHostAddress();
+        int idxIpV6 = ipWithInterfaceScopeId.indexOf("%");
+
+        // there might be a leading slash before the ip address
+        int idxIpV4 = ipWithInterfaceScopeId.indexOf("/");
+        if (idxIpV6 > 0) {
+            ipAddress = ipWithInterfaceScopeId.substring(0, idxIpV6);
+        } else if (idxIpV4 > 0) {
+            ipAddress = ipWithInterfaceScopeId.replace("/", "");
+        } else {
+            ipAddress = ipWithInterfaceScopeId;
+        }
+
         return ipAddress;
     }
+
 
     /**
      * Returns the port of the client
@@ -55,15 +66,24 @@ public class ClientLocation implements Serializable {
      * @return The port
      */
     public int getPort() {
-        return port;
+        return this.peerAddress.tcpPort();
+    }
+
+    /**
+     * Returns the peer address
+     *
+     * @return The peer address
+     */
+    public PeerAddress getPeerAddress() {
+        return peerAddress;
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 31). // two randomly chosen prime numbers
                 // if deriving: appendSuper(super.hashCode()).
-                        append(ipAddress).
-                        append(port).
+                        append(this.getIpAddress()).
+                        append(this.getPort()).
                         toHashCode();
     }
 
@@ -76,11 +96,11 @@ public class ClientLocation implements Serializable {
         }
 
         ClientLocation rhs = (ClientLocation) obj;
-        return new EqualsBuilder().
+        return new EqualsBuilder()
                 // if deriving: appendSuper(super.equals(obj)).
-                        append(ipAddress, rhs.ipAddress).
-                        append(port, rhs.port).
-                        isEquals();
+                .append(this.getIpAddress(), rhs.getIpAddress())
+                .append(this.getPort(), rhs.getPort())
+                .isEquals();
     }
 
 }
