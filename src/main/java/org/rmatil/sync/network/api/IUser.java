@@ -1,6 +1,5 @@
 package org.rmatil.sync.network.api;
 
-import org.rmatil.sync.network.core.exception.SecurityException;
 import org.rmatil.sync.network.core.model.ClientLocation;
 
 import javax.crypto.SecretKey;
@@ -67,5 +66,4 @@ public interface IUser {
      * @return The secret key
      */
     SecretKey getSecretKey();
-
 }

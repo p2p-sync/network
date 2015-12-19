@@ -42,6 +42,8 @@ public class Client implements IClient {
 
     protected Bindings bindings;
 
+    protected ObjectDataReply objectDataReply;
+
     protected PeerDHT peerDht;
 
     protected IClientManager locationManager;
@@ -50,6 +52,10 @@ public class Client implements IClient {
         this.config = config;
         this.user = user;
         this.bindings = new Bindings();
+    }
+
+    public void setObjectDataReply(ObjectDataReply objectDataReply) {
+        this.objectDataReply = objectDataReply;
     }
 
     @Override
@@ -186,6 +192,12 @@ public class Client implements IClient {
                             .bindings(this.bindings)
                             .start()
             ).start();
+
+            if (null != this.objectDataReply) {
+                logger.info("Setting object data reply...");
+                this.peerDht.peer().objectDataReply(this.objectDataReply);
+            }
+
         } catch (IOException e) {
             logger.error("Can not start peer dht. Message: " + e.getMessage());
             this.peerDht.shutdown();
