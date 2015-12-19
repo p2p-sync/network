@@ -3,6 +3,8 @@ package org.rmatil.sync.network.core;
 import org.rmatil.sync.network.api.IClientManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.security.encryption.symmetric.ISymmetricEncryption;
+import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesEncryption;
 import org.rmatil.sync.network.core.serialize.ByteSerializer;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.api.StorageType;
@@ -52,6 +54,8 @@ public class ClientManager implements IClientManager {
      */
     protected String domainKey;
 
+    protected ISymmetricEncryption aesEncryption;
+
 
     public ClientManager(IStorageAdapter storageAdapter, String locationContentKey, String privateKeyContentKey, String publicKeyContentKey, String domainKey) {
         this.storageAdapter = storageAdapter;
@@ -59,6 +63,7 @@ public class ClientManager implements IClientManager {
         this.privateKeyContentKey = privateKeyContentKey;
         this.publicKeyContentKey = publicKeyContentKey;
         this.domainKey = domainKey;
+        this.aesEncryption = new AesEncryption();
     }
 
     @Override
@@ -152,8 +157,6 @@ public class ClientManager implements IClientManager {
                 this.domainKey
         );
 
-        // TODO: encrypt private key with symmetric encryption (AES), password of user
-
         byte[] bytes;
         try {
             bytes = ByteSerializer.toBytes(user.getPrivateKey());
@@ -161,7 +164,10 @@ public class ClientManager implements IClientManager {
             throw new InputOutputException(e);
         }
 
-        this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
+        // encrypt private key with symmetric encryption (AES)
+        byte[] encrypted = this.aesEncryption.encrypt(user.getSecretKey(), bytes);
+
+        this.storageAdapter.persist(StorageType.FILE, dhtPathElement, encrypted);
     }
 
     @Override
@@ -185,11 +191,12 @@ public class ClientManager implements IClientManager {
             return null;
         }
 
-        // TODO: decrypt private key with user password
+        // decrypt private key
+        byte[] decrypted = this.aesEncryption.decrypt(user.getSecretKey(), bytes);
 
         PrivateKey privateKey;
         try {
-            privateKey = (PrivateKey) ByteSerializer.fromBytes(bytes);
+            privateKey = (PrivateKey) ByteSerializer.fromBytes(decrypted);
         } catch (IOException | ClassNotFoundException e) {
             throw new InputOutputException(e);
         }

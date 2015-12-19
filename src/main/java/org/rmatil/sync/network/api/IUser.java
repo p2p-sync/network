@@ -1,7 +1,9 @@
 package org.rmatil.sync.network.api;
 
+import org.rmatil.sync.network.core.exception.SecurityException;
 import org.rmatil.sync.network.core.model.ClientLocation;
 
+import javax.crypto.SecretKey;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -57,5 +59,13 @@ public interface IUser {
      * @return The list of locations
      */
     List<ClientLocation> getClientLocations();
+
+    /**
+     * Generates the symmetric key of either 128 or 256 bit length based on the user password, depending
+     * on the existence of UCE (Unrestricted Cryptography extension)
+     *
+     * @return The secret key
+     */
+    SecretKey getSecretKey();
 
 }

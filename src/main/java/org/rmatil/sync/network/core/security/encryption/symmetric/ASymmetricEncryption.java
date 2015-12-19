@@ -2,7 +2,7 @@ package org.rmatil.sync.network.core.security.encryption.symmetric;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.rmatil.sync.network.core.exception.SecurityException;
-import org.rmatil.sync.network.core.security.EncryptionMode;
+import org.rmatil.sync.network.core.security.encryption.EncryptionMode;
 
 import javax.crypto.*;
 import java.io.IOException;

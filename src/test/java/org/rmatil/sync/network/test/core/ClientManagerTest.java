@@ -53,8 +53,8 @@ public class ClientManagerTest {
         keyPair1 = generator.genKeyPair();
         keyPair2 = generator.genKeyPair();
 
-        user1 = new User("Hermann P. Schnitzel", "admin123", keyPair1.getPublic(), keyPair1.getPrivate(), new ArrayList<>());
-        user2 = new User("Ruby von Rails", "123456", keyPair2.getPublic(), keyPair2.getPrivate(), new ArrayList<>());
+        user1 = new User("Hermann P. Schnitzel", "admin123", "dictionaryAttack", keyPair1.getPublic(), keyPair1.getPrivate(), new ArrayList<>());
+        user2 = new User("Ruby von Rails", "123456", "dictionaryAttack", keyPair2.getPublic(), keyPair2.getPrivate(), new ArrayList<>());
 
         // bootstrap peer and client of user1
         peer1 = PeerDhtUtils.initPeerDht(org.rmatil.sync.network.config.Config.IPv4, user1);
@@ -121,7 +121,7 @@ public class ClientManagerTest {
         List<ClientLocation> result2 = clientManager2.getClientLocations(user1);
 
         // we should also be able to fetch the locations from a different user's client
-        IUser tmpUser = new User(user1.getUserName(), "", user1.getPublicKey(), null, user1.getClientLocations());
+        IUser tmpUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), null, user1.getClientLocations());
         List<ClientLocation> result3 = clientManager3.getClientLocations(tmpUser);
 
         assertEquals("Result has different amount of locations saved", 1, result.size());
@@ -142,7 +142,7 @@ public class ClientManagerTest {
         assertThat("result does not contain location", result, hasItem(l1));
 
         // we should be unable to remove a location from a different user's client
-        IUser tmpUser = new User(user1.getUserName(), "", user1.getPublicKey(), null, user1.getClientLocations());
+        IUser tmpUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), null, user1.getClientLocations());
         clientManager3.removeClientLocation(tmpUser, l1);
 
         // this should still have the result in it since the clientManager3 has a different user
@@ -200,7 +200,7 @@ public class ClientManagerTest {
         clientManager1.addClientLocation(user1, l2);
 
         // we should be able to get all locations from another user
-        IUser otherUser = new User(user1.getUserName(), "", user1.getPublicKey(), null, user1.getClientLocations());
+        IUser otherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), null, user1.getClientLocations());
         List<ClientLocation> result2 = clientManager3.getClientLocations(otherUser);
         assertEquals("Result has different amount of locations saved", 2, result2.size());
         assertThat("Result does not contain location l1", result2, hasItem(l1));
@@ -220,7 +220,7 @@ public class ClientManagerTest {
 
         // other user should not be able to overwrite private key of another user
         clientManager3.addPrivateKey(user1);
-        IUser anotherUser = new User(user1.getUserName(), "", user1.getPublicKey(), user2.getPrivateKey(), user1.getClientLocations());
+        IUser anotherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), user2.getPrivateKey(), user1.getClientLocations());
         PrivateKey fetchedPr3 = clientManager1.getPrivateKey(anotherUser);
         assertNull("Fetched private key of other user should be null", fetchedPr3);
     }
@@ -237,7 +237,7 @@ public class ClientManagerTest {
         assertArrayEquals("Fetched public key is not the same (1)", user1.getPublicKey().getEncoded(), fetchedPk.getEncoded());
         assertArrayEquals("Fetched public key is not the same (2)", user1.getPublicKey().getEncoded(), fetchedPk2.getEncoded());
 
-        IUser anotherUser = new User(user1.getUserName(), "", user2.getPublicKey(), user2.getPrivateKey(), user1.getClientLocations());
+        IUser anotherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user2.getPublicKey(), user2.getPrivateKey(), user1.getClientLocations());
         PublicKey fetchedPk3 = clientManager3.getPublicKey(anotherUser);
 
         assertNotNull("Other client should be able to fetch public key of user1", fetchedPk3);

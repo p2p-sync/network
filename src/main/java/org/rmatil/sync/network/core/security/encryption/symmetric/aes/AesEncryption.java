@@ -9,7 +9,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.rmatil.sync.network.core.exception.SecurityException;
-import org.rmatil.sync.network.core.security.EncryptionMode;
+import org.rmatil.sync.network.core.security.encryption.EncryptionMode;
 import org.rmatil.sync.network.core.security.encryption.symmetric.ASymmetricEncryption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

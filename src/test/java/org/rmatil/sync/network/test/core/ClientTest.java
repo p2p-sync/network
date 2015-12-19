@@ -36,8 +36,8 @@ public class ClientTest {
         KeyPair keyPair1 = generator.generateKeyPair();
         KeyPair keyPair2 = generator.generateKeyPair();
 
-        user = new User("Druid Wensleydale", "qwerty", keyPair1.getPublic(), keyPair1.getPrivate(), new ArrayList<>());
-        user2 = new User("Archibald Northbottom", "letmein", keyPair2.getPublic(), keyPair2.getPrivate(), new ArrayList<>());
+        user = new User("Druid Wensleydale", "qwerty", "dictionaryAttack", keyPair1.getPublic(), keyPair1.getPrivate(), new ArrayList<>());
+        user2 = new User("Archibald Northbottom", "letmein", "dictionaryAttack", keyPair2.getPublic(), keyPair2.getPrivate(), new ArrayList<>());
 
         clientIpV6 = new Client(Config.IPv6, user);
         clientIpV4_1 = new Client(Config.IPv4, user);

@@ -1,4 +1,4 @@
-package org.rmatil.sync.network.core.security;
+package org.rmatil.sync.network.core.security.encryption;
 
 /**
  * The encryption modes, i.e. encryption and decryption
