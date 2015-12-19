@@ -8,6 +8,7 @@ import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.rmatil.sync.network.core.exception.SecurityException;
 import org.rmatil.sync.network.core.security.EncryptionMode;
 import org.rmatil.sync.network.core.security.encryption.symmetric.ASymmetricEncryption;
 import org.slf4j.Logger;
@@ -84,9 +85,18 @@ public final class AesEncryption extends ASymmetricEncryption {
         }
 
         byte[] processedData;
+
+        // getMaxAllowedKeyLength returns max int value if Unrestricted Cryptography Extenstion is enabled
+        boolean uceIsEnabled = Cipher.getMaxAllowedKeyLength("AES") == Integer.MAX_VALUE;
+
         // in bits
         int keySize = symmetricKey.getEncoded().length * 8;
-        if (keySize <= Cipher.getMaxAllowedKeyLength("AES")) {
+        if (! uceIsEnabled) {
+
+            if (keySize > 128) {
+                throw new SecurityException("Max. allowed keysize is 128 bit if UCE (Unrestricted Cryptography Extension) is not enabled");
+            }
+
             logger.info("Using weak AES encryption. Key size was: " + keySize + " bits and max allowed key length was: " + Cipher.getMaxAllowedKeyLength("AES"));
             processedData = this.processWeak(isEncrypting, keySpec, initVector, data);
         } else {

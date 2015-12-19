@@ -2,10 +2,14 @@ package org.rmatil.sync.network.test.core.security.encryption.symmetric.aes;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.rmatil.sync.network.core.exception.SecurityException;
 import org.rmatil.sync.network.core.security.encryption.symmetric.ASymmetricEncryption;
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesEncryption;
 
+import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -22,6 +26,9 @@ import java.security.spec.KeySpec;
 import static org.junit.Assert.*;
 
 public class AesEncryptTest {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     protected static ASymmetricEncryption aesEncrypt;
 
@@ -52,19 +59,29 @@ public class AesEncryptTest {
     }
 
     @Test
-    public void testEncrypt()
+    public void testEncryptWeak()
             throws NoSuchProviderException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, InvalidCipherTextException {
-        byte[] encrypted = aesEncrypt.encrypt(secretKey256, DATA.getBytes(StandardCharsets.UTF_8));
-        byte[] decrypted = aesEncrypt.decrypt(secretKey256, encrypted);
-
-        String ret = new String(decrypted, StandardCharsets.UTF_8);
-        assertEquals("String is not correctly en-/decrypted using the 256 bit key", DATA, ret);
 
         byte[] encrypted128 = aesEncrypt.encrypt(secretKey128, DATA.getBytes(StandardCharsets.UTF_8));
         byte[] decrypted128 = aesEncrypt.decrypt(secretKey128, encrypted128);
 
         String ret128 = new String(decrypted128, StandardCharsets.UTF_8);
         assertEquals("String is not correctly en-/decrypted using the 128 bit key", DATA, ret128);
+    }
+
+    @Test
+    public void testEncryptStrong()
+            throws NoSuchAlgorithmException {
+        if (Cipher.getMaxAllowedKeyLength("AES") != Integer.MAX_VALUE) {
+            // UCE is not enabled -> then we except that exception is thrown
+            thrown.expect(SecurityException.class);
+        }
+
+        byte[] encrypted = aesEncrypt.encrypt(secretKey256, DATA.getBytes(StandardCharsets.UTF_8));
+        byte[] decrypted = aesEncrypt.decrypt(secretKey256, encrypted);
+
+        String ret = new String(decrypted, StandardCharsets.UTF_8);
+        assertEquals("String is not correctly en-/decrypted using the 256 bit key", DATA, ret);
     }
 
 }
