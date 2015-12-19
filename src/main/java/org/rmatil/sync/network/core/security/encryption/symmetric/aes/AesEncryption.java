@@ -14,11 +14,13 @@ import org.rmatil.sync.network.core.security.encryption.symmetric.ASymmetricEncr
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
+import java.security.Security;
 
 /**
  * Encrypts or decrypts data using the AES (Advanced Encryption Standard) algorithm.
@@ -36,9 +38,9 @@ public final class AesEncryption extends ASymmetricEncryption {
      * Generates a randomly (and most probably unique) initialization vector
      * which can be used for Cipher Block Chaining (CBC).
      *
-     * @see AesEncryption#INIT_VECTOR_LENGTH The length of the initialization vector
-     *
      * @return The initialization vector for CBC
+     *
+     * @see AesEncryption#INIT_VECTOR_LENGTH The length of the initialization vector
      */
     public static byte[] generateInitializationVector() {
         SecureRandom secRnd = new SecureRandom();
@@ -61,7 +63,7 @@ public final class AesEncryption extends ASymmetricEncryption {
 
     @Override
     protected byte[] process(EncryptionMode encryptionMode, SecretKey symmetricKey, byte[] data)
-            throws IOException, InvalidCipherTextException, NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, ShortBufferException, NoSuchProviderException, InvalidAlgorithmParameterException {
+            throws GeneralSecurityException, InvalidCipherTextException {
 
         boolean isEncrypting = false;
         if (EncryptionMode.ENCRYPT == encryptionMode) {
@@ -72,7 +74,7 @@ public final class AesEncryption extends ASymmetricEncryption {
 
         byte[] initVector;
         if (EncryptionMode.ENCRYPT == encryptionMode) {
-             initVector = generateInitializationVector();
+            initVector = generateInitializationVector();
         } else {
             // apparently, there is no need to keep the iv secret
             // init vector is prepended to data
@@ -97,10 +99,10 @@ public final class AesEncryption extends ASymmetricEncryption {
                 throw new SecurityException("Max. allowed keysize is 128 bit if UCE (Unrestricted Cryptography Extension) is not enabled");
             }
 
-            logger.info("Using weak AES encryption. Key size was: " + keySize + " bits and max allowed key length was: " + Cipher.getMaxAllowedKeyLength("AES"));
+            logger.info("Using weak AES encryption for encryption " + isEncrypting + ". Key size was: " + keySize + " bits and max allowed key length was: " + Cipher.getMaxAllowedKeyLength("AES"));
             processedData = this.processWeak(isEncrypting, keySpec, initVector, data);
         } else {
-            logger.info("Using strong AES encryption. Key size was: " + keySize + " bits and max allowed key length was: " + Cipher.getMaxAllowedKeyLength("AES"));
+            logger.info("Using strong AES encryption for encryption " + isEncrypting + ". Key size was: " + keySize + " bits and max allowed key length was: " + Cipher.getMaxAllowedKeyLength("AES"));
             processedData = this.processUce(isEncrypting, keySpec, initVector, data);
         }
 
@@ -154,11 +156,11 @@ public final class AesEncryption extends ASymmetricEncryption {
      * @return The processed data
      */
     protected byte[] processWeak(boolean isEncrypting, SecretKeySpec symmetricKeySpec, byte[] initVector, byte[] data)
-            throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, ShortBufferException, BadPaddingException, IllegalBlockSizeException {
+            throws GeneralSecurityException {
         IvParameterSpec ivParameterSpec = new IvParameterSpec(initVector);
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding", BouncyCastleProvider.PROVIDER_NAME);
 
-        int encryptMode = isEncrypting ? Cipher.ENCRYPT_MODE :  Cipher.DECRYPT_MODE;
+        int encryptMode = isEncrypting ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE;
         cipher.init(encryptMode, symmetricKeySpec, ivParameterSpec);
 
         byte[] output = new byte[cipher.getOutputSize(data.length)];

@@ -28,4 +28,9 @@ public class Pbkdf2FactoryTest {
 
         assertArrayEquals("Key1 and key2 should be equal since they use the same salt", key1.getEncoded(), key2.getEncoded());
     }
+
+    @Test
+    public void testExceptions() {
+
+    }
 }

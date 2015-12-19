@@ -4,12 +4,8 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.rmatil.sync.network.core.exception.SecurityException;
 import org.rmatil.sync.network.core.security.encryption.EncryptionMode;
 
-import javax.crypto.*;
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import javax.crypto.SecretKey;
+import java.security.GeneralSecurityException;
 
 /**
  * This abstract class provides an interface to various
@@ -25,10 +21,8 @@ public abstract class ASymmetricEncryption implements ISymmetricEncryption {
 
         try {
             return process(EncryptionMode.ENCRYPT, symmetricKey, data);
-        } catch (IOException | InvalidCipherTextException e) {
+        } catch (GeneralSecurityException | InvalidCipherTextException e) {
             throw new SecurityException("Failed to encrypt data. Message: " + e.getMessage(), e);
-        } catch (ShortBufferException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | NoSuchProviderException e) {
-            throw new SecurityException("Failed to decrypt data. Message: " + e.getMessage());
         }
     }
 
@@ -40,10 +34,8 @@ public abstract class ASymmetricEncryption implements ISymmetricEncryption {
 
         try {
             return process(EncryptionMode.DECRYPT, symmetricKey, data);
-        } catch (IOException | InvalidCipherTextException e) {
+        } catch (GeneralSecurityException | InvalidCipherTextException e) {
             throw new SecurityException("Failed to decrypt data. Message: " + e.getMessage(), e);
-        } catch (ShortBufferException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException | NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException | NoSuchProviderException e) {
-            throw new SecurityException("Failed to decrypt data. Message: " + e.getMessage());
         }
     }
 
@@ -59,9 +51,9 @@ public abstract class ASymmetricEncryption implements ISymmetricEncryption {
      *
      * @return The decrypted or encrypted data
      *
-     * @throws IOException                If accessing the data failed
      * @throws InvalidCipherTextException If the cipher text was invalid
+     * @throws GeneralSecurityException If another error occurred
      */
     protected abstract byte[] process(EncryptionMode encryptionMode, SecretKey symmetricKey, byte[] data)
-            throws IOException, InvalidCipherTextException, NoSuchAlgorithmException, NoSuchPaddingException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, ShortBufferException, NoSuchProviderException, InvalidAlgorithmParameterException;
+            throws InvalidCipherTextException, GeneralSecurityException;
 }
