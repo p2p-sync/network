@@ -66,6 +66,15 @@ public enum Config {
         return domainKey;
     }
 
+    /**
+     * Allows to set the port manually
+     *
+     * @param port The port to set
+     */
+    public void setPort(int port) {
+        this.port = port;
+    }
+
     public int getPort() {
         return port;
     }
