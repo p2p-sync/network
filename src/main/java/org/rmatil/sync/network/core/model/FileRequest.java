@@ -2,7 +2,9 @@ package org.rmatil.sync.network.core.model;
 
 import org.rmatil.sync.network.api.IUser;
 
-public class FileRequest {
+import java.io.Serializable;
+
+public class FileRequest implements Serializable {
 
     /**
      * The requesting user

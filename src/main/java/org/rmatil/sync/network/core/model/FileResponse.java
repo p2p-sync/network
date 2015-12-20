@@ -1,6 +1,8 @@
 package org.rmatil.sync.network.core.model;
 
-public class FileResponse {
+import java.io.Serializable;
+
+public class FileResponse implements Serializable {
 
     /**
      * The number of the chunk which is returned
@@ -14,13 +16,19 @@ public class FileResponse {
     protected long totalNrOfChunks;
 
     /**
+     * The file size in bytes
+     */
+    protected long totalFileSize;
+
+    /**
      * The actual data of the request
      */
     protected Data data;
 
-    public FileResponse(long chunkCounter, long totalNrOfChunks, Data data) {
+    public FileResponse(long chunkCounter, long totalNrOfChunks, long totalFileSize, Data data) {
         this.chunkCounter = chunkCounter;
         this.totalNrOfChunks = totalNrOfChunks;
+        this.totalFileSize = totalFileSize;
         this.data = data;
     }
 
@@ -30,6 +38,10 @@ public class FileResponse {
 
     public long getTotalNrOfChunks() {
         return totalNrOfChunks;
+    }
+
+    public long getTotalFileSize() {
+        return totalFileSize;
     }
 
     public Data getData() {
