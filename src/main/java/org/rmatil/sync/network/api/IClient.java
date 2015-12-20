@@ -1,6 +1,8 @@
 package org.rmatil.sync.network.api;
 
+import net.tomp2p.dht.PeerDHT;
 import net.tomp2p.peers.PeerAddress;
+import net.tomp2p.rpc.ObjectDataReply;
 import org.rmatil.sync.network.core.model.ClientLocation;
 
 /**
@@ -33,10 +35,25 @@ public interface IClient {
     boolean shutdown();
 
     /**
+     * Sets the object data reply handler which should be invoked
+     * when an object is received by the peer
+     *
+     * @param objectDataReply The data reply handler to add
+     */
+    void setObjectDataReply(ObjectDataReply objectDataReply);
+
+    /**
      * Returns the peer address of the client
      *
      * @return The peer address
      */
     PeerAddress getPeerAddress();
+
+    /**
+     * Returns the peer DHT of the client
+     *
+     * @return The peer DHT
+     */
+    PeerDHT getPeerDht();
 
 }

@@ -54,10 +54,6 @@ public class Client implements IClient {
         this.bindings = new Bindings();
     }
 
-    public void setObjectDataReply(ObjectDataReply objectDataReply) {
-        this.objectDataReply = objectDataReply;
-    }
-
     @Override
     public boolean start() {
         boolean success = this.initPeerDht();
@@ -164,8 +160,19 @@ public class Client implements IClient {
         return false;
     }
 
+    @Override
+    public void setObjectDataReply(ObjectDataReply objectDataReply) {
+        this.objectDataReply = objectDataReply;
+    }
+
+    @Override
     public PeerAddress getPeerAddress() {
         return this.peerDht.peerAddress();
+    }
+
+    @Override
+    public PeerDHT getPeerDht() {
+        return this.peerDht;
     }
 
     protected boolean initPeerDht() {
