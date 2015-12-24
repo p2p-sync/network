@@ -1,13 +1,19 @@
 package org.rmatil.sync.network.core;
 
+import io.netty.buffer.Unpooled;
 import net.tomp2p.connection.Bindings;
 import net.tomp2p.connection.StandardProtocolFamily;
+import net.tomp2p.dht.FutureSend;
 import net.tomp2p.dht.PeerBuilderDHT;
 import net.tomp2p.dht.PeerDHT;
 import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.FutureBootstrap;
+import net.tomp2p.futures.FutureDirect;
 import net.tomp2p.futures.FutureDiscover;
+import net.tomp2p.message.Buffer;
 import net.tomp2p.p2p.PeerBuilder;
+import net.tomp2p.p2p.RequestP2PConfiguration;
+import net.tomp2p.p2p.builder.SendDirectBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
@@ -15,6 +21,8 @@ import org.rmatil.sync.network.api.IClient;
 import org.rmatil.sync.network.api.IClientManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.config.Config;
+import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
+import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
@@ -42,7 +50,7 @@ public class Client implements IClient {
 
     protected Bindings bindings;
 
-    protected ObjectDataReply objectDataReply;
+    protected ObjectDataReplyHandler objectDataReplyHandler;
 
     protected PeerDHT peerDht;
 
@@ -161,8 +169,8 @@ public class Client implements IClient {
     }
 
     @Override
-    public void setObjectDataReply(ObjectDataReply objectDataReply) {
-        this.objectDataReply = objectDataReply;
+    public void setObjectDataReplyHandler(ObjectDataReplyHandler objectDataReplyHandler) {
+        this.objectDataReplyHandler = objectDataReplyHandler;
     }
 
     @Override
@@ -200,9 +208,9 @@ public class Client implements IClient {
                             .start()
             ).start();
 
-            if (null != this.objectDataReply) {
+            if (null != this.objectDataReplyHandler) {
                 logger.info("Setting object data reply...");
-                this.peerDht.peer().objectDataReply(this.objectDataReply);
+                this.peerDht.peer().objectDataReply(this.objectDataReplyHandler);
             }
 
         } catch (IOException e) {
@@ -222,16 +230,21 @@ public class Client implements IClient {
         return true;
     }
 
-    public void sendDirect() {
-        // get peer address from DHT
-        PeerAddress peerAddress = null;
-        this.peerDht.peer().sendDirect(peerAddress).object("hallo");
-        this.peerDht.peer().objectDataReply(new ObjectDataReply() {
-            @Override
-            public Object reply(PeerAddress sender, Object request)
-                    throws Exception {
-                return null;
-            }
-        });
+    @Override
+    public void sendDirect(PeerAddress receiverAddress, Object dataToSend)
+            throws ObjectSendFailedException {
+        logger.info("Sending object to peer with address " + receiverAddress.inetAddress().getHostAddress());
+        // TODO: sign & encrypt files
+        FutureDirect futureDirect = this.peerDht.peer().sendDirect(receiverAddress).object(dataToSend).start();
+        try {
+            futureDirect.await();
+        } catch (InterruptedException e) {
+            logger.error("Failed to send object to  " + receiverAddress.inetAddress().getHostAddress() + ". Thread got interrupted while waiting for futureDirect to complete. Message: " + e.getMessage());
+            throw new ObjectSendFailedException(e);
+        }
+
+        if (futureDirect.isFailed()) {
+            throw new ObjectSendFailedException("Could not send data to peer with address " + receiverAddress.inetAddress().getHostAddress() + ". Message: " + futureDirect.failedReason());
+        }
     }
 }

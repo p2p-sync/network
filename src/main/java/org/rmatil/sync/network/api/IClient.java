@@ -3,6 +3,8 @@ package org.rmatil.sync.network.api;
 import net.tomp2p.dht.PeerDHT;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
+import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
+import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.ClientLocation;
 
 /**
@@ -38,9 +40,9 @@ public interface IClient {
      * Sets the object data reply handler which should be invoked
      * when an object is received by the peer
      *
-     * @param objectDataReply The data reply handler to add
+     * @param objectDataReplyHandler The data reply handler to add
      */
-    void setObjectDataReply(ObjectDataReply objectDataReply);
+    void setObjectDataReplyHandler(ObjectDataReplyHandler objectDataReplyHandler);
 
     /**
      * Returns the peer address of the client
@@ -55,5 +57,16 @@ public interface IClient {
      * @return The peer DHT
      */
     PeerDHT getPeerDht();
+
+    /**
+     * Sends the given object to the specified peer address
+     *
+     * @param receiverAddress The address of the client to which the object should be sent
+     * @param dataToSend      The data to send to the client
+     *
+     * @throws ObjectSendFailedException If sending the object to the client failed
+     */
+    void sendDirect(PeerAddress receiverAddress, Object dataToSend)
+            throws ObjectSendFailedException;
 
 }
