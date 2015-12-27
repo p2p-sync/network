@@ -54,6 +54,13 @@ public interface IClient {
     UUID getClientDeviceId();
 
     /**
+     * Returns the user corresponding to this client
+     *
+     * @return The user of this client
+     */
+    IUser getUser();
+
+    /**
      * Returns the peer address of the client
      *
      * @return The peer address

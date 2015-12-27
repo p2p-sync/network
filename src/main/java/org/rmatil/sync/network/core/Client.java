@@ -183,6 +183,11 @@ public class Client implements IClient {
     }
 
     @Override
+    public IUser getUser() {
+        return user;
+    }
+
+    @Override
     public PeerAddress getPeerAddress() {
         return this.peerDht.peerAddress();
     }
