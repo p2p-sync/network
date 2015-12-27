@@ -7,6 +7,8 @@ import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.ClientLocation;
 
+import java.util.UUID;
+
 /**
  * A client of a particular user
  */
@@ -43,6 +45,13 @@ public interface IClient {
      * @param objectDataReplyHandler The data reply handler to add
      */
     void setObjectDataReplyHandler(ObjectDataReplyHandler objectDataReplyHandler);
+
+    /**
+     * Returns the uuid of this client's device
+     *
+     * @return The uuid of this device
+     */
+    UUID getClientDeviceId();
 
     /**
      * Returns the peer address of the client

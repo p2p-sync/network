@@ -178,6 +178,11 @@ public class Client implements IClient {
     }
 
     @Override
+    public UUID getClientDeviceId() {
+        return clientDeviceId;
+    }
+
+    @Override
     public PeerAddress getPeerAddress() {
         return this.peerDht.peerAddress();
     }
