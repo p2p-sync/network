@@ -5,6 +5,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * A model which represents a single location of a client
@@ -18,9 +19,15 @@ public class ClientLocation implements Serializable {
     protected PeerAddress peerAddress;
 
     /**
+     * The uuid of this client device
+     */
+    protected UUID clientDeviceId;
+
+    /**
      * @param peerAddress The peer address to add
      */
-    public ClientLocation(PeerAddress peerAddress) {
+    public ClientLocation(UUID clientDeviceId, PeerAddress peerAddress) {
+        this.clientDeviceId = clientDeviceId;
         this.peerAddress = peerAddress;
     }
 
@@ -70,6 +77,15 @@ public class ClientLocation implements Serializable {
     }
 
     /**
+     * Returns the UUID of this client device
+     *
+     * @return The uuid
+     */
+    public UUID getClientDeviceId() {
+        return clientDeviceId;
+    }
+
+    /**
      * Returns the peer address
      *
      * @return The peer address
@@ -84,6 +100,7 @@ public class ClientLocation implements Serializable {
                 // if deriving: appendSuper(super.hashCode()).
                         append(this.getIpAddress()).
                         append(this.getPort()).
+                        append(this.getClientDeviceId()).
                         toHashCode();
     }
 
@@ -100,6 +117,7 @@ public class ClientLocation implements Serializable {
                 // if deriving: appendSuper(super.equals(obj)).
                 .append(this.getIpAddress(), rhs.getIpAddress())
                 .append(this.getPort(), rhs.getPort())
+                .append(this.getClientDeviceId(), rhs.getClientDeviceId())
                 .isEquals();
     }
 

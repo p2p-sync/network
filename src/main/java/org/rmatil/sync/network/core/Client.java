@@ -36,6 +36,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Random;
+import java.util.UUID;
 
 
 public class Client implements IClient {
@@ -48,6 +49,8 @@ public class Client implements IClient {
 
     protected IUser user;
 
+    protected UUID clientDeviceId;
+
     protected Bindings bindings;
 
     protected ObjectDataReplyHandler objectDataReplyHandler;
@@ -56,9 +59,10 @@ public class Client implements IClient {
 
     protected IClientManager locationManager;
 
-    public Client(Config config, IUser user) {
+    public Client(Config config, IUser user, UUID uuid) {
         this.config = config;
         this.user = user;
+        this.clientDeviceId = uuid;
         this.bindings = new Bindings();
     }
 
@@ -73,7 +77,7 @@ public class Client implements IClient {
         logger.info("Starting client on IP address " + this.getPeerAddress().inetAddress().getHostName() + ":" + this.config.getPort() + ". Inserting a new client location");
 
         IStorageAdapter dhtStorageAdapter = new DhtStorageAdapter(this.peerDht);
-        ClientLocation clientLocation = new ClientLocation(this.peerDht.peerAddress());
+        ClientLocation clientLocation = new ClientLocation(this.clientDeviceId, this.peerDht.peerAddress());
         this.locationManager = new ClientManager(
                 dhtStorageAdapter,
                 this.config.getLocationsContentKey(),

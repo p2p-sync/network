@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -64,10 +65,10 @@ public class ClientManagerTest {
         // client 1 of user2
         peer3 = PeerDhtUtils.initPeerDht(org.rmatil.sync.network.config.Config.IPv4_3, user2);
 
-        l1 = new ClientLocation(peer1.peerAddress());
+        l1 = new ClientLocation(UUID.randomUUID(), peer1.peerAddress());
 
         PeerDhtUtils.connectToLocation(peer2, l1);
-        l2 = new ClientLocation(peer2.peerAddress());
+        l2 = new ClientLocation(UUID.randomUUID(), peer2.peerAddress());
         PeerDhtUtils.connectToLocation(peer3, l1);
 
         dhtStorageAdapter1 = new DhtStorageAdapter(peer1);

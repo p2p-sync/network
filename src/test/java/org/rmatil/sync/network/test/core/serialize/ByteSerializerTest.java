@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertThat;
@@ -29,8 +30,8 @@ public class ByteSerializerTest {
         PeerAddress peerAddress = new PeerAddress(Number160.ONE, InetAddress.getLocalHost());
         PeerAddress peerAddress2 = new PeerAddress(Number160.ZERO, InetAddress.getLocalHost());
 
-        l1 = new ClientLocation(peerAddress);
-        l2 = new ClientLocation(peerAddress2);
+        l1 = new ClientLocation(UUID.randomUUID(), peerAddress);
+        l2 = new ClientLocation(UUID.randomUUID(), peerAddress2);
 
         locations.add(l1);
         locations.add(l2);

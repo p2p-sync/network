@@ -15,6 +15,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static org.junit.Assert.assertTrue;
 
@@ -39,9 +40,9 @@ public class ClientTest {
         user = new User("Druid Wensleydale", "qwerty", "dictionaryAttack", keyPair1.getPublic(), keyPair1.getPrivate(), new ArrayList<>());
         user2 = new User("Archibald Northbottom", "letmein", "dictionaryAttack", keyPair2.getPublic(), keyPair2.getPrivate(), new ArrayList<>());
 
-        clientIpV6 = new Client(Config.IPv6, user);
-        clientIpV4_1 = new Client(Config.IPv4, user);
-        clientIpV4_2 = new Client(Config.IPv4_2, user2);
+        clientIpV6 = new Client(Config.IPv6, user, UUID.randomUUID());
+        clientIpV4_1 = new Client(Config.IPv4, user, UUID.randomUUID());
+        clientIpV4_2 = new Client(Config.IPv4_2, user2, UUID.randomUUID());
     }
 
     @After
@@ -74,7 +75,7 @@ public class ClientTest {
 
         assertTrue("IPv4_1 client did not succeed to start", succeededV4_1);
 
-        ClientLocation ipV4_1Client = new ClientLocation(clientIpV4_1.getPeerAddress());
+        ClientLocation ipV4_1Client = new ClientLocation(UUID.randomUUID(), clientIpV4_1.getPeerAddress());
 
         boolean succeededV4 = clientIpV4_2.start(ipV4_1Client);
 
