@@ -25,11 +25,12 @@ public interface IClient {
      * Start the client and let it connect to an online peer
      * at the given client location
      *
-     * @param bootstrapLocation The client location of an online peer
+     * @param bootstrapIpAddress The ip address of an online client to which to bootstrap to
+     * @param bootstrapPort      The port of an online client to which to bootstrap to
      *
      * @return True, if starting and connecting succeeded, false otherwise
      */
-    boolean start(ClientLocation bootstrapLocation);
+    boolean start(String bootstrapIpAddress, int bootstrapPort);
 
     /**
      * Shuts down the client. Blocks until success or failure.

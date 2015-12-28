@@ -1,22 +1,16 @@
 package org.rmatil.sync.network.core;
 
-import io.netty.buffer.Unpooled;
 import net.tomp2p.connection.Bindings;
 import net.tomp2p.connection.StandardProtocolFamily;
-import net.tomp2p.dht.FutureSend;
 import net.tomp2p.dht.PeerBuilderDHT;
 import net.tomp2p.dht.PeerDHT;
 import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDirect;
 import net.tomp2p.futures.FutureDiscover;
-import net.tomp2p.message.Buffer;
 import net.tomp2p.p2p.PeerBuilder;
-import net.tomp2p.p2p.RequestP2PConfiguration;
-import net.tomp2p.p2p.builder.SendDirectBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
-import net.tomp2p.rpc.ObjectDataReply;
 import org.rmatil.sync.network.api.IClient;
 import org.rmatil.sync.network.api.IClientManager;
 import org.rmatil.sync.network.api.IUser;
@@ -101,7 +95,7 @@ public class Client implements IClient {
     }
 
     @Override
-    public boolean start(ClientLocation bootstrapLocation) {
+    public boolean start(String bootstrapIpAdress, int bootstrapPort) {
         boolean success = this.initPeerDht();
 
         if (! success) {
@@ -111,18 +105,18 @@ public class Client implements IClient {
         InetAddress address;
         try {
             // try to find client with the given location
-            logger.debug("Trying to connect to " + bootstrapLocation.getIpAddress() + ":" + bootstrapLocation.getPort() + " ...");
-            address = InetAddress.getByName(bootstrapLocation.getIpAddress());
+            logger.debug("Trying to connect to " + bootstrapIpAdress + ":" + bootstrapPort + " ...");
+            address = InetAddress.getByName(bootstrapIpAdress);
             FutureDiscover futureDiscover = this.peerDht
                     .peer()
                     .discover()
                     .inetAddress(address)
-                    .ports(bootstrapLocation.getPort())
+                    .ports(bootstrapPort)
                     .start();
             futureDiscover.awaitUninterruptibly();
 
             if (futureDiscover.isFailed()) {
-                logger.error("Can not discover other client at address " + bootstrapLocation.getIpAddress() + ":" + bootstrapLocation.getPort() + ". Message: " + futureDiscover.failedReason());
+                logger.error("Can not discover other client at address " + bootstrapIpAdress + ":" + bootstrapPort + ". Message: " + futureDiscover.failedReason());
                 return false;
             }
 
@@ -133,16 +127,16 @@ public class Client implements IClient {
                     .peer()
                     .bootstrap()
                     .inetAddress(address)
-                    .ports(bootstrapLocation.getPort())
+                    .ports(bootstrapPort)
                     .start();
             futureBootstrap.awaitUninterruptibly();
 
             if (futureBootstrap.isFailed()) {
-                logger.error("Can not bootstrap to address " + bootstrapLocation.getIpAddress() + ". Message: " + futureBootstrap.failedReason());
+                logger.error("Can not bootstrap to address " + bootstrapIpAdress + ". Message: " + futureBootstrap.failedReason());
                 return false;
             }
 
-            logger.info("Bootstrapping of client " + bootstrapLocation.getIpAddress() + ":" + bootstrapLocation.getPort() + " succeeded");
+            logger.info("Bootstrapping of client " + bootstrapIpAdress + ":" + bootstrapPort + " succeeded");
 
         } catch (UnknownHostException e) {
             logger.error("Can not start client. Message: " + e.getMessage());

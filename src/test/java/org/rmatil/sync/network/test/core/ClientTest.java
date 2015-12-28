@@ -8,8 +8,6 @@ import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.Client;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.network.core.model.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -20,8 +18,6 @@ import java.util.UUID;
 import static org.junit.Assert.assertTrue;
 
 public class ClientTest {
-
-    protected final static Logger logger = LoggerFactory.getLogger(ClientTest.class);
 
     protected static Client clientIpV6;
     protected static Client clientIpV4_1;
@@ -77,7 +73,7 @@ public class ClientTest {
 
         ClientLocation ipV4_1Client = new ClientLocation(UUID.randomUUID(), clientIpV4_1.getPeerAddress());
 
-        boolean succeededV4 = clientIpV4_2.start(ipV4_1Client);
+        boolean succeededV4 = clientIpV4_2.start(ipV4_1Client.getIpAddress(), ipV4_1Client.getPort());
 
         assertTrue("IPv4 2 client did not succeed to start", succeededV4);
     }
