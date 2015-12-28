@@ -4,10 +4,7 @@ import net.tomp2p.connection.Bindings;
 import net.tomp2p.connection.StandardProtocolFamily;
 import net.tomp2p.dht.PeerBuilderDHT;
 import net.tomp2p.dht.PeerDHT;
-import net.tomp2p.futures.BaseFuture;
-import net.tomp2p.futures.FutureBootstrap;
-import net.tomp2p.futures.FutureDirect;
-import net.tomp2p.futures.FutureDiscover;
+import net.tomp2p.futures.*;
 import net.tomp2p.p2p.PeerBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
@@ -239,7 +236,7 @@ public class Client implements IClient {
     }
 
     @Override
-    public void sendDirect(PeerAddress receiverAddress, Object dataToSend)
+    public FutureResponse sendDirect(PeerAddress receiverAddress, Object dataToSend)
             throws ObjectSendFailedException {
         logger.info("Sending object to peer with address " + receiverAddress.inetAddress().getHostAddress());
         // TODO: sign & encrypt files
@@ -254,5 +251,7 @@ public class Client implements IClient {
         if (futureDirect.isFailed()) {
             throw new ObjectSendFailedException("Could not send data to peer with address " + receiverAddress.inetAddress().getHostAddress() + ". Message: " + futureDirect.failedReason());
         }
+
+        return futureDirect.futureResponse();
     }
 }
