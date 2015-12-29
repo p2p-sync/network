@@ -236,22 +236,10 @@ public class Client implements IClient {
     }
 
     @Override
-    public FutureResponse sendDirect(PeerAddress receiverAddress, Object dataToSend)
+    public FutureDirect sendDirect(PeerAddress receiverAddress, Object dataToSend)
             throws ObjectSendFailedException {
         logger.info("Sending object to peer with address " + receiverAddress.inetAddress().getHostAddress());
         // TODO: sign & encrypt files
-        FutureDirect futureDirect = this.peerDht.peer().sendDirect(receiverAddress).object(dataToSend).start();
-        try {
-            futureDirect.await();
-        } catch (InterruptedException e) {
-            logger.error("Failed to send object to  " + receiverAddress.inetAddress().getHostAddress() + ". Thread got interrupted while waiting for futureDirect to complete. Message: " + e.getMessage());
-            throw new ObjectSendFailedException(e);
-        }
-
-        if (futureDirect.isFailed()) {
-            throw new ObjectSendFailedException("Could not send data to peer with address " + receiverAddress.inetAddress().getHostAddress() + ". Message: " + futureDirect.failedReason());
-        }
-
-        return futureDirect.futureResponse();
+        return this.peerDht.peer().sendDirect(receiverAddress).object(dataToSend).start();
     }
 }

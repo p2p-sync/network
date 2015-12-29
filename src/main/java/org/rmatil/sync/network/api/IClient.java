@@ -2,6 +2,7 @@ package org.rmatil.sync.network.api;
 
 import net.tomp2p.dht.FutureRemove;
 import net.tomp2p.dht.PeerDHT;
+import net.tomp2p.futures.FutureDirect;
 import net.tomp2p.futures.FutureResponse;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
@@ -78,16 +79,17 @@ public interface IClient {
     PeerDHT getPeerDht();
 
     /**
-     * Sends the given object to the specified peer address
+     * Sends the given object to the specified peer address.
+     * Note, that you still have to call {@link FutureDirect#await()} on it.
      *
      * @param receiverAddress The address of the client to which the object should be sent
      * @param dataToSend      The data to send to the client
      *
-     * @return The future response which will contain the result
+     * @return The Future. Note, that you have to await until this future is complete
      *
      * @throws ObjectSendFailedException If sending the object to the client failed
      */
-    FutureResponse sendDirect(PeerAddress receiverAddress, Object dataToSend)
+    FutureDirect sendDirect(PeerAddress receiverAddress, Object dataToSend)
             throws ObjectSendFailedException;
 
 }

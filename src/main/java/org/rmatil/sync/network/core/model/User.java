@@ -5,7 +5,9 @@ import org.rmatil.sync.network.core.exception.SecurityException;
 import org.rmatil.sync.network.core.security.encryption.Pbkdf2Factory;
 
 import javax.crypto.SecretKey;
-import java.security.*;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.List;
 
 /**
