@@ -69,12 +69,11 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
         // forward the request to the correct data reply instance
         for (Map.Entry<Class, ObjectDataReply> entry : this.objectDataReplies.entrySet()) {
             if (entry.getKey().isInstance(request)) {
-                logger.info("Using " + entry.getKey().getName() + " as handler for request");
+                logger.info("Using " + entry.getValue().getClass().getName() + " as handler for request " + entry.getKey().getName());
                 return entry.getValue().reply(sender, request);
             }
         }
 
-        // TODO: check if null is an appropriate response. Maybe an empty object should be returned?
         logger.warn("No appropriate object data reply instance found for request " + request.getClass().getName() + ". Sending NULL as response!");
         return null;
     }

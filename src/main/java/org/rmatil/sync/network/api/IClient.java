@@ -1,14 +1,10 @@
 package org.rmatil.sync.network.api;
 
-import net.tomp2p.dht.FutureRemove;
 import net.tomp2p.dht.PeerDHT;
 import net.tomp2p.futures.FutureDirect;
-import net.tomp2p.futures.FutureResponse;
 import net.tomp2p.peers.PeerAddress;
-import net.tomp2p.rpc.ObjectDataReply;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
-import org.rmatil.sync.network.core.model.ClientLocation;
 
 import java.util.UUID;
 

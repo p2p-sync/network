@@ -2,7 +2,6 @@ package org.rmatil.sync.network.test.core;
 
 import net.tomp2p.futures.FutureDirect;
 import net.tomp2p.peers.PeerAddress;
-import net.tomp2p.rpc.ObjectDataReply;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;

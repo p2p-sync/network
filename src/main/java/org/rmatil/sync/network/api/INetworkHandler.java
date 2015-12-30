@@ -1,5 +1,7 @@
 package org.rmatil.sync.network.api;
 
+import org.rmatil.sync.network.core.exception.ConnectionFailedException;
+
 import java.util.concurrent.Callable;
 
 /**
@@ -21,6 +23,13 @@ public interface INetworkHandler<T> extends Callable<T> {
      */
     T call();
 
+    /**
+     * Sends the request of the network handler to all online peers of the client.
+     *
+     * @throws ConnectionFailedException If the other online clients can not be determined
+     */
+    void sendRequest()
+            throws ConnectionFailedException;
 
     /**
      * Returns true, once all necessary clients have responded

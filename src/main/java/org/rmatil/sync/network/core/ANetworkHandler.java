@@ -40,7 +40,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T> {
     /**
      * The client manager to access meta information
      */
-    protected ClientManager clientManager;
+    protected IClientManager clientManager;
 
     /**
      * The client of this device
@@ -66,7 +66,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T> {
      * @param client        The client of this device
      * @param request       The initial request which will be sent to all clients
      */
-    public ANetworkHandler(IUser user, ClientManager clientManager, IClient client, IRequest request) {
+    public ANetworkHandler(IUser user, IClientManager clientManager, IClient client, IRequest request) {
         this.user = user;
         this.clientManager = clientManager;
         this.client = client;
@@ -82,30 +82,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T> {
         logger.info("Sending request " + this.request.getExchangeId() + " to clients");
         try {
 
-            List<ClientLocation> clientLocations;
-            try {
-                clientLocations = this.clientManager.getClientLocations(this.user);
-            } catch (InputOutputException e) {
-                throw new ConnectionFailedException("Could not fetch client locations to send file offer to. Message: " + e.getMessage(), e);
-            }
-            logger.trace("Found " + clientLocations.size() + " other clients");
-
-            // offer file
-            for (ClientLocation entry : clientLocations) {
-                logger.debug("Sending request " + this.request.getExchangeId() + " to client " + entry.getIpAddress() + ":" + entry.getPort());
-                try {
-                    FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), this.request);
-                    ClientDevice clientDevice = new ClientDevice(
-                            this.client.getUser().getUserName(),
-                            entry.getClientDeviceId(),
-                            entry.getPeerAddress()
-                    );
-
-                    this.notifiedClients.put(clientDevice, futureDirect);
-                } catch (ObjectSendFailedException e) {
-                    logger.error("Failed to send request to client " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Message: " + e.getMessage());
-                }
-            }
+            this.sendRequest();
 
             this.waitForNotifiedClients();
 
@@ -116,6 +93,39 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T> {
         }
 
         return null;
+    }
+
+    public void sendRequest()
+            throws ConnectionFailedException {
+        List<ClientLocation> clientLocations;
+        try {
+            clientLocations = this.clientManager.getClientLocations(this.user);
+        } catch (InputOutputException e) {
+            throw new ConnectionFailedException("Could not fetch client locations to send file offer to. Message: " + e.getMessage(), e);
+        }
+        logger.trace("Found " + clientLocations.size() + " clients");
+
+        // offer file
+        for (ClientLocation entry : clientLocations) {
+            if (entry.getPeerAddress().equals(this.client.getPeerAddress())) {
+                logger.debug("Ignoring sending client " + entry.getIpAddress() + ":" + entry.getPort());
+                continue;
+            }
+
+            logger.debug("Sending request " + this.request.getExchangeId() + " to client " + entry.getIpAddress() + ":" + entry.getPort());
+            try {
+                FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), this.request);
+                ClientDevice clientDevice = new ClientDevice(
+                        this.client.getUser().getUserName(),
+                        entry.getClientDeviceId(),
+                        entry.getPeerAddress()
+                );
+
+                this.notifiedClients.put(clientDevice, futureDirect);
+            } catch (ObjectSendFailedException e) {
+                logger.error("Failed to send request to client " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Message: " + e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -150,7 +160,6 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T> {
 
         // if all clients responded successfully, their response is stored in respondedClients
         return this.notifiedClients.size() == this.respondedClients.size();
-
     }
 
     /**

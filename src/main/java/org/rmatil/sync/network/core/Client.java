@@ -133,7 +133,26 @@ public class Client implements IClient {
                 return false;
             }
 
-            logger.info("Bootstrapping of client " + bootstrapIpAdress + ":" + bootstrapPort + " succeeded");
+            logger.info("Bootstrapping to client " + bootstrapIpAdress + ":" + bootstrapPort + " succeeded. My own address is now " + this.peerDht.peerAddress().inetAddress().getHostAddress() + ":" + this.peerDht.peerAddress().tcpPort());
+
+            ClientLocation clientLocation = new ClientLocation(this.clientDeviceId, this.peerDht.peerAddress());
+            IStorageAdapter dhtStorageAdapter = new DhtStorageAdapter(this.peerDht);
+            this.locationManager = new ClientManager(
+                    dhtStorageAdapter,
+                    this.config.getLocationsContentKey(),
+                    this.config.getPrivateKeyContentKey(),
+                    this.config.getLocationsContentKey(),
+                    this.config.getDomainKey()
+            );
+
+            try {
+                this.locationManager.addClientLocation(this.user, clientLocation);
+            } catch (InputOutputException e) {
+                logger.error("Can not store my client location in the location manager. Therefore, shutting down. Message: " + e.getMessage());
+                this.peerDht.shutdown();
+
+                return false;
+            }
 
         } catch (UnknownHostException e) {
             logger.error("Can not start client. Message: " + e.getMessage());
@@ -238,7 +257,7 @@ public class Client implements IClient {
     @Override
     public FutureDirect sendDirect(PeerAddress receiverAddress, Object dataToSend)
             throws ObjectSendFailedException {
-        logger.info("Sending object to peer with address " + receiverAddress.inetAddress().getHostAddress());
+        logger.info("Sending object to peer with address " + receiverAddress.inetAddress().getHostAddress() + ":" + receiverAddress.tcpPort());
         // TODO: sign & encrypt files
         return this.peerDht.peer().sendDirect(receiverAddress).object(dataToSend).start();
     }
