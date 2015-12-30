@@ -75,7 +75,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
         }
 
         // TODO: check if null is an appropriate response. Maybe an empty object should be returned?
-        logger.warn("No appropriate object data reply instance found for request. Sending NULL as response!");
+        logger.warn("No appropriate object data reply instance found for request " + request.getClass().getName() + ". Sending NULL as response!");
         return null;
     }
 }
