@@ -1,0 +1,29 @@
+package org.rmatil.sync.network.api;
+
+import org.rmatil.sync.network.core.model.ClientDevice;
+
+import java.io.Serializable;
+import java.util.UUID;
+
+/**
+ * The common interface for requests
+ * which are handle by an implementation of INetworkHandler.
+ *
+ * @see INetworkHandler
+ */
+public interface IRequest extends Serializable {
+
+    /**
+     * The id of the information exchange
+     *
+     * @return The id of the exchange
+     */
+    UUID getExchangeId();
+
+    /**
+     * The client device which sends this request
+     *
+     * @return The client device which has sent this request
+     */
+    ClientDevice getClientDevice();
+}
