@@ -1,14 +1,15 @@
 package org.rmatil.sync.network.test.core;
 
 import net.tomp2p.futures.FutureDirect;
-import net.tomp2p.peers.PeerAddress;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.rmatil.sync.network.api.IRequest;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.Client;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
+import org.rmatil.sync.network.core.model.ClientDevice;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.network.core.model.User;
 
@@ -17,7 +18,9 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
 
@@ -106,16 +109,15 @@ public class ClientTest {
     @Test
     public void testSendDirect()
             throws InterruptedException, IOException, ClassNotFoundException {
-        String sentObject = "A coffee a day gets the doctor away";
 
-        ObjectDataReplyHandler replyHandler = new ObjectDataReplyHandler();
-        replyHandler.addObjectDataReply(String.class, (sender, request) -> {
-            assertEquals("Object is not equals", sentObject, request);
+        UUID exchangeId = UUID.randomUUID();
 
-            return sentObject;
-        });
+        ObjectDataReplyHandler replyHandler1 = new ObjectDataReplyHandler(clientIpV4_1);
+        ObjectDataReplyHandler replyHandler2 = new ObjectDataReplyHandler(clientIpV4_2);
 
-        clientIpV4_1.setObjectDataReplyHandler(replyHandler);
+        // set object data reply handler on both sides
+        clientIpV4_1.setObjectDataReplyHandler(replyHandler1);
+        clientIpV4_2.setObjectDataReplyHandler(replyHandler2);
 
         boolean c1 = clientIpV4_1.start();
         boolean c2 = clientIpV4_2.start();
@@ -123,14 +125,45 @@ public class ClientTest {
         assertTrue("Client1 did not succeed to start", c1);
         assertTrue("Client2 did not succeed to start", c2);
 
-        PeerAddress address = clientIpV4_1.getPeerAddress();
+        List<ClientLocation> receiver = new ArrayList<>();
+        receiver.add(new ClientLocation(
+                clientIpV4_2.getClientDeviceId(),
+                clientIpV4_2.getPeerAddress()
+        ));
 
-        FutureDirect futureDirect = clientIpV4_2.sendDirect(address, sentObject);
+        IRequest request = new DummyRequest(
+                exchangeId,
+                new ClientDevice(
+                        clientIpV4_1.getUser().getUserName(),
+                        clientIpV4_1.getClientDeviceId(),
+                        clientIpV4_1.getPeerAddress()
+                ),
+                receiver
+        );
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        // now we wait on client 1 for the response
+        replyHandler1.addCallbackHandler(exchangeId, response -> {
+            assertEquals("ExchangeId returned should be the same as sent", exchangeId, response.getExchangeId());
+            clientIpV4_1.getObjectDataReplyHandler().getCallbackHandlers().remove(response.getExchangeId());
+            latch.countDown();
+            return null;
+        });
+
+        assertEquals("Size of callbackHandler should be one, since the response was not yet processed", 1, clientIpV4_1.getObjectDataReplyHandler().getCallbackHandlers().size());
+
+        FutureDirect futureDirect = clientIpV4_1.sendDirect(request.getReceiverAddresses().iterator().next().getPeerAddress(), request);
         futureDirect.await();
 
-        assertFalse("Future Direct should not have been failed", futureDirect.isFailed());
+        assertFalse("Future Direct should not have been failed (" + futureDirect.failedReason() + ")", futureDirect.isFailed());
 
         Object returnedObject = futureDirect.object();
-        assertEquals("Object returned by return handler is not equal", sentObject, returnedObject);
+        assertNull("Object returned by return handler should be null", returnedObject);
+
+        // wait until response has been received
+        latch.await();
+
+        assertEquals("Size of callbackHandler should be zero, since the response was processed", 0, clientIpV4_1.getObjectDataReplyHandler().getCallbackHandlers().size());
     }
 }
