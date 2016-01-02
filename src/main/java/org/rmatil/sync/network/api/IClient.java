@@ -47,6 +47,13 @@ public interface IClient {
     void setObjectDataReplyHandler(ObjectDataReplyHandler objectDataReplyHandler);
 
     /**
+     * Returns the object data reply handler which handles all incoming requests
+     *
+     * @return The object data handler
+     */
+    ObjectDataReplyHandler getObjectDataReplyHandler();
+
+    /**
      * Returns the uuid of this client's device
      *
      * @return The uuid of this device

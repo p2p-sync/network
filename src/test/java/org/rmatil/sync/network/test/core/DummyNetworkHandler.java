@@ -3,19 +3,61 @@ package org.rmatil.sync.network.test.core;
 import org.rmatil.sync.network.api.IClient;
 import org.rmatil.sync.network.api.IClientManager;
 import org.rmatil.sync.network.api.IRequest;
-import org.rmatil.sync.network.api.IUser;
+import org.rmatil.sync.network.api.IResponse;
 import org.rmatil.sync.network.core.ANetworkHandler;
-import org.rmatil.sync.network.core.exception.ConnectionFailedException;
+import org.rmatil.sync.network.core.model.ClientDevice;
+import org.rmatil.sync.persistence.exceptions.InputOutputException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 public class DummyNetworkHandler extends ANetworkHandler<Boolean> {
 
-    public DummyNetworkHandler(IUser user, IClientManager clientManager, IClient client, IRequest request) {
-        super(user, clientManager, client, request);
+    private final static Logger logger = LoggerFactory.getLogger(DummyNetworkHandler.class);
+
+    protected IClientManager clientManager;
+
+    public DummyNetworkHandler(IClient client, IClientManager clientManager) {
+        super(client);
+        this.clientManager = clientManager;
     }
 
     @Override
-    protected Boolean handleResult()
-            throws ConnectionFailedException {
-        return this.notifiedClients.size() == this.respondedClients.size();
+    public Boolean call() {
+
+        UUID exchangeId = UUID.randomUUID();
+        ClientDevice clientDevice = new ClientDevice(
+                this.client.getUser().getUserName(),
+                this.client.getClientDeviceId(),
+                this.client.getPeerAddress()
+        );
+
+        logger.info("Creating request " + exchangeId);
+        IRequest dummyRequest;
+        try {
+            dummyRequest = new DummyRequest(exchangeId, clientDevice, this.clientManager.getClientLocations(this.client.getUser()));
+        } catch (InputOutputException e) {
+            logger.error("Can not get all client locations from the user");
+            return false;
+        }
+
+        try {
+            this.sendRequest(dummyRequest);
+        } catch (Exception e) {
+            logger.error("Error in ANetworkHandler thread. Message: " + e.getMessage(), e);
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public Boolean onResponse(IResponse response) {
+        logger.info("Received response " + response.getExchangeId());
+
+        super.countDownLatch.countDown();
+
+        return true;
     }
 }

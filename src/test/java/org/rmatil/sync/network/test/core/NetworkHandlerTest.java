@@ -1,5 +1,6 @@
 package org.rmatil.sync.network.test.core;
 
+import net.tomp2p.futures.FutureDirect;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -20,6 +21,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.concurrent.*;
 
 import static org.junit.Assert.*;
 
@@ -29,7 +31,6 @@ public class NetworkHandlerTest {
 
     protected static IClientManager              clientManager1;
     protected static IClientManager              clientManager2;
-    protected static DummyObjectDataReply        dummyObjectDataReply;
 
     protected static IClient client1;
     protected static IClient client2;
@@ -63,13 +64,8 @@ public class NetworkHandlerTest {
                 clientDeviceId2
         );
 
-        dummyObjectDataReply = new DummyObjectDataReply();
-
-        // reply handler for client 2 (handling requests from client 1)
-        ObjectDataReplyHandler objectDataReplyHandler2 = new ObjectDataReplyHandler();
-        objectDataReplyHandler2.addObjectDataReply(DummyRequest.class, dummyObjectDataReply);
-
-        client2.setObjectDataReplyHandler(objectDataReplyHandler2);
+        client1.setObjectDataReplyHandler(new ObjectDataReplyHandler(client1));
+        client2.setObjectDataReplyHandler(new ObjectDataReplyHandler(client2));
 
         client1.start();
         client2.start(client1.getPeerAddress().inetAddress().getHostAddress(), client1.getPeerAddress().tcpPort());
@@ -106,26 +102,28 @@ public class NetworkHandlerTest {
     }
 
     @Test
-    public void testNetworkHandler() {
-        UUID exchangeId = UUID.randomUUID();
-        ClientDevice clientDevice = new ClientDevice(
-                user.getUserName(),
-                client1.getClientDeviceId(),
-                client1.getPeerAddress()
-        );
-
-        IRequest dummyRequest = new DummyRequest(exchangeId, clientDevice);
+    public void testNetworkHandler()
+            throws ExecutionException, InterruptedException {
         DummyNetworkHandler networkHandler = new DummyNetworkHandler(
-                user,
-                clientManager1,
                 client1,
-                dummyRequest
+                clientManager1
         );
 
         // this is normally invoked by an ExecutorService
-        Boolean result = networkHandler.call();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(networkHandler);
+
+        Boolean result = future.get();
 
         assertTrue("Result should be true", result);
-        assertEquals("DummyRequest should be handled by 1 client", 1, dummyObjectDataReply.getHandledRequests());
+
+        assertEquals("Progress should be 0", 0, networkHandler.getProgress());
+
+        // wait until all notified clients have responded
+        networkHandler.await();
+
+        assertTrue("NetworkHandler should be completed once all clients have responded", networkHandler.isCompleted());
+
+        assertEquals("Progress should be 100%", 100, networkHandler.getProgress());
     }
 }

@@ -188,6 +188,11 @@ public class Client implements IClient {
     }
 
     @Override
+    public ObjectDataReplyHandler getObjectDataReplyHandler() {
+        return this.objectDataReplyHandler;
+    }
+
+    @Override
     public UUID getClientDeviceId() {
         return clientDeviceId;
     }

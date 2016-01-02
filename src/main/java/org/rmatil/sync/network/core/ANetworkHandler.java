@@ -6,14 +6,14 @@ import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.model.ClientDevice;
 import org.rmatil.sync.network.core.model.ClientLocation;
-import org.rmatil.sync.persistence.exceptions.InputOutputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Handles communication between multiple clients.
@@ -25,22 +25,15 @@ import java.util.Map;
  *
  * @param <T> The result type which should be returned, once the information exchange between clients has been completed
  */
-public abstract class ANetworkHandler<T> implements INetworkHandler<T> {
+public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IResponseCallback {
 
     private final static Logger logger = LoggerFactory.getLogger(ANetworkHandler.class);
 
-    protected final static int  MAX_WAITING_RETRIES = 5;
-    protected final static long MAX_WAITING_TIME    = 1000L;
-
     /**
-     * The user of this client
+     * The countdown latch which will be completed once all
+     * notified clients have responded
      */
-    protected IUser user;
-
-    /**
-     * The client manager to access meta information
-     */
-    protected IClientManager clientManager;
+    protected CountDownLatch countDownLatch;
 
     /**
      * The client of this device
@@ -48,73 +41,39 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T> {
     protected IClient client;
 
     /**
-     * The initial request which has been sent to all clients
-     */
-    protected IRequest request;
-
-    /**
      * A map having the client device which responded along with its response
      * representing all clients which have responded to the initial request
      */
     protected Map<ClientDevice, FutureDirect> notifiedClients;
 
-    protected Map<ClientDevice, IResponse> respondedClients;
-
     /**
-     * @param user          The user of this client
-     * @param clientManager The client manager to access meta information
-     * @param client        The client of this device
-     * @param request       The initial request which will be sent to all clients
+     * @param client The client of this device
      */
-    public ANetworkHandler(IUser user, IClientManager clientManager, IClient client, IRequest request) {
-        this.user = user;
-        this.clientManager = clientManager;
+    public ANetworkHandler(IClient client) {
         this.client = client;
-        this.request = request;
-
         this.notifiedClients = new HashMap<>();
-        this.respondedClients = new HashMap<>();
     }
 
     @Override
-    public T call()
+    public abstract T call();
+
+    @Override
+    public void sendRequest(IRequest request)
             throws ConnectionFailedException {
-        logger.info("Sending request " + this.request.getExchangeId() + " to clients");
-        try {
 
-            this.sendRequest();
-
-            this.waitForNotifiedClients();
-
-            return this.handleResult();
-
-        } catch (Exception e) {
-            logger.error("Error in ANetworkHandler thread. Message: " + e.getMessage(), e);
-        }
-
-        return null;
-    }
-
-    public void sendRequest()
-            throws ConnectionFailedException {
-        List<ClientLocation> clientLocations;
-        try {
-            clientLocations = this.clientManager.getClientLocations(this.user);
-        } catch (InputOutputException e) {
-            throw new ConnectionFailedException("Could not fetch client locations to send file offer to. Message: " + e.getMessage(), e);
-        }
-        logger.trace("Found " + clientLocations.size() + " clients");
+        List<ClientLocation> clientLocations = request.getReceiverAddresses();
 
         // offer file
         for (ClientLocation entry : clientLocations) {
             if (entry.getPeerAddress().equals(this.client.getPeerAddress())) {
-                logger.debug("Ignoring sending client " + entry.getIpAddress() + ":" + entry.getPort());
+                logger.debug("Ignoring receiver address " + entry.getIpAddress() + ":" + entry.getPort() + " since it is the own client's address");
                 continue;
             }
 
-            logger.debug("Sending request " + this.request.getExchangeId() + " to client " + entry.getIpAddress() + ":" + entry.getPort());
+            logger.debug("Sending request " + request.getExchangeId() + " to client " + entry.getIpAddress() + ":" + entry.getPort());
             try {
-                FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), this.request);
+                this.client.getObjectDataReplyHandler().addCallbackHandler(request.getExchangeId(), this);
+                FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), request);
                 ClientDevice clientDevice = new ClientDevice(
                         this.client.getUser().getUserName(),
                         entry.getClientDeviceId(),
@@ -126,51 +85,45 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T> {
                 logger.error("Failed to send request to client " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Message: " + e.getMessage());
             }
         }
+
+        // init count down latch with size of all clients
+        this.countDownLatch = new CountDownLatch(this.notifiedClients.size());
     }
 
     @Override
-    public boolean waitForNotifiedClients() {
-        int retries = 0;
-        while (retries < MAX_WAITING_RETRIES && this.respondedClients.size() < this.notifiedClients.size()) {
-            for (Map.Entry<ClientDevice, FutureDirect> entry : this.notifiedClients.entrySet()) {
-                FutureDirect futureDirect = entry.getValue();
-                try {
-                    futureDirect.await(MAX_WAITING_TIME);
-                } catch (InterruptedException e) {
-                    logger.error("Failed to wait for future direct of client " + entry.getKey().getClientDeviceId() + " (" + entry.getKey().getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getKey().getPeerAddress().tcpPort() + "). Thread got interrupted while waiting for futureDirect to complete. Message: " + e.getMessage());
-                }
+    public void await()
+            throws InterruptedException {
+        this.countDownLatch.await();
+    }
 
-                if (futureDirect.isCompleted()) {
-                    if (futureDirect.isSuccess()) {
-                        try {
-                            this.respondedClients.put(entry.getKey(), (IResponse) futureDirect.object());
-                        } catch (ClassNotFoundException | IOException e) {
-                            logger.error("Failed to get response object from futureDirect of client " + entry.getKey().getClientDeviceId() + " (" + entry.getKey().getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getKey().getPeerAddress().tcpPort() + "). Message: " + e.getMessage(), e);
-                        }
-                    } else {
-                        logger.error("Client " + entry.getKey().getClientDeviceId() + " (" + entry.getKey().getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getKey().getPeerAddress().tcpPort() + ") did not respond successfully. Message: " + futureDirect.failedReason());
-                    }
-                } else {
-                    logger.debug("FutureDirect of client " + entry.getKey().getClientDeviceId() + " (" + entry.getKey().getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getKey().getPeerAddress().tcpPort() + ") is not completed yet after waiting " + MAX_WAITING_TIME + " milliseconds. This was retry " + retries + " of max. retries " + MAX_WAITING_RETRIES);
-                }
-            }
+    @Override
+    public void await(long timeout, TimeUnit timeUnit)
+            throws InterruptedException {
+        this.countDownLatch.await(timeout, timeUnit);
+    }
 
-            retries++;
+    @Override
+    public boolean isCompleted() {
+        return 0 == this.countDownLatch.getCount();
+    }
+
+    @Override
+    public int getProgress() {
+        if (this.notifiedClients.size() > 0) {
+            return Math.round(((this.notifiedClients.size() - this.countDownLatch.getCount()) / this.notifiedClients.size()) * 100);
         }
 
-        // if all clients responded successfully, their response is stored in respondedClients
-        return this.notifiedClients.size() == this.respondedClients.size();
+        return 100;
     }
 
     /**
-     * Should be invoked once all protocol steps are completed.
-     * Is called from call once all clients to which a request has been sent responded.
+     * <p color="red">Note, that each time a response is received, the count down latch
+     * should be decreased by one. Otherwise, {@link ANetworkHandler#await()} and/or {@link ANetworkHandler#await(long, TimeUnit)}
+     * will wait forever.</p>
      *
-     * @return The result after all protocol steps are performed. May be null
-     *
-     * @throws ConnectionFailedException If an error occurred during result computation
+     * {@inheritDoc}
      */
-    protected abstract T handleResult()
-            throws ConnectionFailedException;
+    @Override
+    public abstract T onResponse(IResponse response);
 
 }

@@ -3,6 +3,7 @@ package org.rmatil.sync.network.api;
 import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Handles the protocol implementation between clients to exchange
@@ -28,14 +29,42 @@ public interface INetworkHandler<T> extends Callable<T> {
      *
      * @throws ConnectionFailedException If the other online clients can not be determined
      */
-    void sendRequest()
+    void sendRequest(IRequest request)
             throws ConnectionFailedException;
 
     /**
-     * Returns true, once all necessary clients have responded
+     * Blocks until all notified clients have responded
      *
-     * @return True, if all necessary clients habe been responded. False otherwise.
+     * @throws InterruptedException If the thread got interrupted while waiting
      */
-    boolean waitForNotifiedClients();
+    void await()
+            throws InterruptedException;
 
+    /**
+     * Blocks for the given timeout.
+     *
+     * @param timeout The timeout to wait
+     * @param timeUnit The time unit which qualifies the timeout
+     *
+     * @throws InterruptedException If the thread got interrupted while waiting
+     */
+    void await(long timeout, TimeUnit timeUnit)
+            throws InterruptedException;
+
+    /**
+     * Returns true once all notified clients have responded.
+     *
+     * @return True, if all notified clients have responded, false otherwise.
+     */
+    boolean isCompleted();
+
+    /**
+     * Returns the progress until this handler's communication
+     * is considered complete (See {@link INetworkHandler#isCompleted()}).
+     *
+     * Returns values between 100 and 0 (inclusive).
+     *
+     * @return The progress
+     */
+    int getProgress();
 }
