@@ -13,16 +13,14 @@ import java.util.concurrent.TimeUnit;
  *
  * @param <T> The result type which should be returned, once the information exchange is completed and the protocol steps are performed
  */
-public interface INetworkHandler<T> extends Callable<T> {
+public interface INetworkHandler<T> extends Runnable {
 
     /**
      * The main method which starts the protocol implementation.
      * <p>
      * {@inheritDoc}
-     *
-     * @return The result after all protocol steps are performed. May be null
      */
-    T call();
+    void run();
 
     /**
      * Sends the request of the network handler to all online peers of the client.
@@ -67,4 +65,13 @@ public interface INetworkHandler<T> extends Callable<T> {
      * @return The progress
      */
     int getProgress();
+
+
+    /**
+     * Returns the final result of the exchange.
+     * Note, that the result may be null before all clients have responded.
+     *
+     * @return The result once the all necessary clients responded. May be null before all clients have responded
+     */
+    T getResult();
 }

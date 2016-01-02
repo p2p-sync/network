@@ -29,6 +29,8 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
     private final static Logger logger = LoggerFactory.getLogger(ANetworkHandler.class);
 
+    public final long MAX_WAITING_TIME = 30000L;
+
     /**
      * The countdown latch which will be completed once all
      * notified clients have responded
@@ -47,6 +49,11 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
     protected Map<ClientDevice, FutureDirect> notifiedClients;
 
     /**
+     * Indicates whether a request has been sent yet to any client
+     */
+    protected boolean hasStartedToNotify = false;
+
+    /**
      * @param client The client of this device
      */
     public ANetworkHandler(IClient client) {
@@ -55,11 +62,12 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
     }
 
     @Override
-    public abstract T call();
+    public abstract void run();
 
     @Override
     public void sendRequest(IRequest request)
             throws ConnectionFailedException {
+        this.hasStartedToNotify = true;
 
         List<ClientLocation> clientLocations = request.getReceiverAddresses();
 
@@ -93,7 +101,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
     @Override
     public void await()
             throws InterruptedException {
-        this.countDownLatch.await();
+        this.countDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -104,16 +112,20 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
     @Override
     public boolean isCompleted() {
-        return 0 == this.countDownLatch.getCount();
+        return null != this.countDownLatch && 0 == this.countDownLatch.getCount();
     }
 
     @Override
     public int getProgress() {
-        if (this.notifiedClients.size() > 0) {
+        if (this.hasStartedToNotify && this.notifiedClients.size() > 0) {
             return Math.round(((this.notifiedClients.size() - this.countDownLatch.getCount()) / this.notifiedClients.size()) * 100);
         }
 
-        return 100;
+        if (this.hasStartedToNotify) {
+            return 100;
+        }
+
+        return 0;
     }
 
     /**
@@ -124,6 +136,9 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
      * {@inheritDoc}
      */
     @Override
-    public abstract T onResponse(IResponse response);
+    public abstract void onResponse(IResponse response);
 
+
+    @Override
+    public abstract T getResult();
 }

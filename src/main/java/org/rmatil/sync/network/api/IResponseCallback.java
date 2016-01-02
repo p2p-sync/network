@@ -2,7 +2,7 @@ package org.rmatil.sync.network.api;
 
 import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 
-public interface IResponseCallback<T> {
+public interface IResponseCallback {
 
     /**
      * Should be called from the object data reply handler, once
@@ -16,6 +16,6 @@ public interface IResponseCallback<T> {
      *
      * @throws ConnectionFailedException If an error occurred during result computation
      */
-    T onResponse(IResponse response)
+    void onResponse(IResponse response)
             throws ConnectionFailedException;
 }

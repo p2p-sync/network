@@ -148,7 +148,6 @@ public class ClientTest {
             assertEquals("ExchangeId returned should be the same as sent", exchangeId, response.getExchangeId());
             clientIpV4_1.getObjectDataReplyHandler().getCallbackHandlers().remove(response.getExchangeId());
             latch.countDown();
-            return null;
         });
 
         assertEquals("Size of callbackHandler should be one, since the response was not yet processed", 1, clientIpV4_1.getObjectDataReplyHandler().getCallbackHandlers().size());

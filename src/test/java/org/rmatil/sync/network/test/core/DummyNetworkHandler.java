@@ -24,7 +24,7 @@ public class DummyNetworkHandler extends ANetworkHandler<Boolean> {
     }
 
     @Override
-    public Boolean call() {
+    public void run() {
 
         UUID exchangeId = UUID.randomUUID();
         ClientDevice clientDevice = new ClientDevice(
@@ -39,25 +39,26 @@ public class DummyNetworkHandler extends ANetworkHandler<Boolean> {
             dummyRequest = new DummyRequest(exchangeId, clientDevice, this.clientManager.getClientLocations(this.client.getUser()));
         } catch (InputOutputException e) {
             logger.error("Can not get all client locations from the user");
-            return false;
+            return;
         }
 
         try {
-            this.sendRequest(dummyRequest);
+            super.sendRequest(dummyRequest);
         } catch (Exception e) {
             logger.error("Error in ANetworkHandler thread. Message: " + e.getMessage(), e);
-            return false;
+            return;
         }
-
-        return true;
     }
 
     @Override
-    public Boolean onResponse(IResponse response) {
+    public void onResponse(IResponse response) {
         logger.info("Received response " + response.getExchangeId());
 
         super.countDownLatch.countDown();
+    }
 
-        return true;
+    @Override
+    public Boolean getResult() {
+        return super.countDownLatch.getCount() == 0;
     }
 }

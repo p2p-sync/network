@@ -109,21 +109,23 @@ public class NetworkHandlerTest {
                 clientManager1
         );
 
+        boolean result = networkHandler.isCompleted();
+        assertFalse("Result should be false", result);
+        assertEquals("Progress should be 0", 0, networkHandler.getProgress());
+
         // this is normally invoked by an ExecutorService
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<Boolean> future = executorService.submit(networkHandler);
+        executorService.execute(networkHandler);
 
-        Boolean result = future.get();
-
-        assertTrue("Result should be true", result);
-
-        assertEquals("Progress should be 0", 0, networkHandler.getProgress());
+        // wait a bit until thread has started
+        Thread.sleep(100L);
 
         // wait until all notified clients have responded
         networkHandler.await();
 
         assertTrue("NetworkHandler should be completed once all clients have responded", networkHandler.isCompleted());
-
         assertEquals("Progress should be 100%", 100, networkHandler.getProgress());
+
+        assertTrue("Final result should be true", networkHandler.getResult());
     }
 }
