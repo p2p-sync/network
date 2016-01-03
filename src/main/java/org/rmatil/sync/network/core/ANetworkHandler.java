@@ -82,6 +82,13 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
             try {
                 this.client.getObjectDataReplyHandler().addCallbackHandler(request.getExchangeId(), this);
                 FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), request);
+
+                futureDirect.await();
+
+                if (futureDirect.isFailed()) {
+                    throw new ObjectSendFailedException("Failed to sent request " + request.getExchangeId() + ". Message: " + futureDirect.failedReason());
+                }
+
                 ClientDevice clientDevice = new ClientDevice(
                         this.client.getUser().getUserName(),
                         entry.getClientDeviceId(),
@@ -89,7 +96,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
                 );
 
                 this.notifiedClients.put(clientDevice, futureDirect);
-            } catch (ObjectSendFailedException e) {
+            } catch (ObjectSendFailedException | InterruptedException e) {
                 logger.error("Failed to send request to client " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Message: " + e.getMessage());
             }
         }
