@@ -29,7 +29,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
     private final static Logger logger = LoggerFactory.getLogger(ANetworkHandler.class);
 
-    public final long MAX_WAITING_TIME = 30000L;
+    public static final long MAX_WAITING_TIME = 30000L;
 
     /**
      * The countdown latch which will be completed once all
@@ -139,7 +139,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
      * <p color="red">Note, that each time a response is received, the count down latch
      * should be decreased by one. Otherwise, {@link ANetworkHandler#await()} and/or {@link ANetworkHandler#await(long, TimeUnit)}
      * will wait forever.</p>
-     *
+     * <p>
      * {@inheritDoc}
      */
     @Override
