@@ -62,7 +62,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
      *
      * @param requestExchangeId The request exchange id of which the callback handler should be removed
      */
-    public void removeObjectDataReply(UUID requestExchangeId) {
+    public void removeCallbackHandler(UUID requestExchangeId) {
         this.callbackHandlers.remove(requestExchangeId);
     }
 
