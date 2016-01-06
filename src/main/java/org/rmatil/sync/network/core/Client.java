@@ -164,7 +164,7 @@ public class Client implements IClient {
 
     @Override
     public boolean shutdown() {
-        logger.debug("Shutting client down...");
+        logger.info("Shutting client down...");
 
         if (null == this.peerDht) {
             return true;
@@ -262,7 +262,7 @@ public class Client implements IClient {
     @Override
     public FutureDirect sendDirect(PeerAddress receiverAddress, Object dataToSend)
             throws ObjectSendFailedException {
-        logger.info("Sending object to peer with address " + receiverAddress.inetAddress().getHostAddress() + ":" + receiverAddress.tcpPort());
+        logger.trace("Sending object to peer with address " + receiverAddress.inetAddress().getHostAddress() + ":" + receiverAddress.tcpPort());
         // TODO: sign & encrypt files
         return this.peerDht.peer().sendDirect(receiverAddress).object(dataToSend).start();
     }

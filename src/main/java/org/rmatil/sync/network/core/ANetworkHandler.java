@@ -80,7 +80,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
             logger.debug("Sending request " + request.getExchangeId() + " to client " + entry.getIpAddress() + ":" + entry.getPort());
             try {
-                this.client.getObjectDataReplyHandler().addCallbackHandler(request.getExchangeId(), this);
+                this.client.getObjectDataReplyHandler().addResponseCallbackHandler(request.getExchangeId(), this);
                 FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), request);
 
                 futureDirect.await();

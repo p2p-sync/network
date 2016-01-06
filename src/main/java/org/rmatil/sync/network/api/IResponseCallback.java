@@ -2,6 +2,9 @@ package org.rmatil.sync.network.api;
 
 import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 
+/**
+ * An interface for response callbacks.
+ */
 public interface IResponseCallback {
 
     /**
@@ -11,8 +14,6 @@ public interface IResponseCallback {
      *
      * @see org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler
      * @see org.rmatil.sync.network.core.ANetworkHandler
-     *
-     * @return The result after all protocol steps are performed. May be null
      *
      * @throws ConnectionFailedException If an error occurred during result computation
      */

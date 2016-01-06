@@ -112,8 +112,12 @@ public class ClientTest {
 
         UUID exchangeId = UUID.randomUUID();
 
+        // Set up "Protocol"
         ObjectDataReplyHandler replyHandler1 = new ObjectDataReplyHandler(clientIpV4_1);
+        replyHandler1.addRequestCallbackHandler(DummyRequest.class, DummyRequestHandler.class);
+
         ObjectDataReplyHandler replyHandler2 = new ObjectDataReplyHandler(clientIpV4_2);
+        replyHandler2.addRequestCallbackHandler(DummyRequest.class, DummyRequestHandler.class);
 
         // set object data reply handler on both sides
         clientIpV4_1.setObjectDataReplyHandler(replyHandler1);
@@ -144,13 +148,13 @@ public class ClientTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         // now we wait on client 1 for the response
-        replyHandler1.addCallbackHandler(exchangeId, response -> {
+        replyHandler1.addResponseCallbackHandler(exchangeId, response -> {
             assertEquals("ExchangeId returned should be the same as sent", exchangeId, response.getExchangeId());
-            clientIpV4_1.getObjectDataReplyHandler().getCallbackHandlers().remove(response.getExchangeId());
+            clientIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().remove(response.getExchangeId());
             latch.countDown();
         });
 
-        assertEquals("Size of callbackHandler should be one, since the response was not yet processed", 1, clientIpV4_1.getObjectDataReplyHandler().getCallbackHandlers().size());
+        assertEquals("Size of callbackHandler should be one, since the response was not yet processed", 1, clientIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().size());
 
         FutureDirect futureDirect = clientIpV4_1.sendDirect(request.getReceiverAddresses().iterator().next().getPeerAddress(), request);
         futureDirect.await();
@@ -163,6 +167,6 @@ public class ClientTest {
         // wait until response has been received
         latch.await();
 
-        assertEquals("Size of callbackHandler should be zero, since the response was processed", 0, clientIpV4_1.getObjectDataReplyHandler().getCallbackHandlers().size());
+        assertEquals("Size of callbackHandler should be zero, since the response was processed", 0, clientIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().size());
     }
 }

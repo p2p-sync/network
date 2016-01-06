@@ -1,18 +1,15 @@
 package org.rmatil.sync.network.test.core;
 
-import net.tomp2p.futures.FutureDirect;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.rmatil.sync.network.api.IClient;
 import org.rmatil.sync.network.api.IClientManager;
-import org.rmatil.sync.network.api.IRequest;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.Client;
 import org.rmatil.sync.network.core.ClientManager;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
-import org.rmatil.sync.network.core.model.ClientDevice;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
 
@@ -21,7 +18,9 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.*;
 
@@ -29,8 +28,8 @@ public class NetworkHandlerTest {
 
     protected static IUser user;
 
-    protected static IClientManager              clientManager1;
-    protected static IClientManager              clientManager2;
+    protected static IClientManager clientManager1;
+    protected static IClientManager clientManager2;
 
     protected static IClient client1;
     protected static IClient client2;
@@ -64,8 +63,14 @@ public class NetworkHandlerTest {
                 clientDeviceId2
         );
 
-        client1.setObjectDataReplyHandler(new ObjectDataReplyHandler(client1));
-        client2.setObjectDataReplyHandler(new ObjectDataReplyHandler(client2));
+        // Setup protocol
+        ObjectDataReplyHandler objectDataReplyHandler1 = new ObjectDataReplyHandler(client1);
+        objectDataReplyHandler1.addRequestCallbackHandler(DummyRequest.class, DummyRequestHandler.class);
+        client1.setObjectDataReplyHandler(objectDataReplyHandler1);
+
+        ObjectDataReplyHandler objectDataReplyHandler2 = new ObjectDataReplyHandler(client2);
+        objectDataReplyHandler2.addRequestCallbackHandler(DummyRequest.class, DummyRequestHandler.class);
+        client2.setObjectDataReplyHandler(objectDataReplyHandler2);
 
         client1.start();
         client2.start(client1.getPeerAddress().inetAddress().getHostAddress(), client1.getPeerAddress().tcpPort());

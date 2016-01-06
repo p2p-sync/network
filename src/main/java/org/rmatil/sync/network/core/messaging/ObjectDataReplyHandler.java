@@ -2,10 +2,8 @@ package org.rmatil.sync.network.core.messaging;
 
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
-import org.rmatil.sync.network.api.IClient;
-import org.rmatil.sync.network.api.IRequest;
-import org.rmatil.sync.network.api.IResponse;
-import org.rmatil.sync.network.api.IResponseCallback;
+import org.rmatil.sync.network.api.*;
+import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,10 +20,18 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     protected final static Logger logger = LoggerFactory.getLogger(ObjectDataReplyHandler.class);
 
     /**
-     * A map of all registered callbackHandlers.
+     * A map of all registered responseCallbackHandlers.
      * Key is the class to which the corresponding objectDataReply should be applied to
      */
-    protected Map<UUID, IResponseCallback> callbackHandlers;
+    protected Map<UUID, IResponseCallback> responseCallbackHandlers;
+
+    /**
+     * A map of all registered requestCallbackHandlers.
+     * Key is the class of the request for which the corresponding request callback should be invoked.
+     * <p>
+     * (Key is any implementation of {@link IRequest}, value any implementation of {@link IRequestCallback})
+     */
+    protected Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> requestCallbackHandlers;
 
     /**
      * The client to use for sending back responses
@@ -33,18 +39,24 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     protected IClient client;
 
     /**
-     * @param client           The client used for sending back the responses of a request
-     * @param callbackHandlers A map of all registered callbackHandlers. Specify as key the exchange id of the request
-     *                         the corresponding objectDataReply should be applied to if the request matches the class
+     * @param client                   The client used for sending back the responses of a request
+     * @param responseCallbackHandlers A map of all registered responseCallbackHandlers. Specify as key the exchange id of the request
+     *                                 the corresponding objectDataReply should be applied to if the request matches the class
+     * @param requestCallbackHandlers  A map of all registered requestCallbackHandlers. Specify as key the class of the request for which the corresponding request callback handler should be invoked
      */
-    public ObjectDataReplyHandler(IClient client, Map<UUID, IResponseCallback> callbackHandlers) {
+    public ObjectDataReplyHandler(IClient client, Map<UUID, IResponseCallback> responseCallbackHandlers, Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> requestCallbackHandlers) {
         this.client = client;
-        this.callbackHandlers = callbackHandlers;
+        this.responseCallbackHandlers = responseCallbackHandlers;
+        this.requestCallbackHandlers = requestCallbackHandlers;
     }
 
+    /**
+     * @param client The client used for sending back the responses of a request
+     */
     public ObjectDataReplyHandler(IClient client) {
         this.client = client;
-        this.callbackHandlers = new HashMap<>();
+        this.responseCallbackHandlers = new HashMap<>();
+        this.requestCallbackHandlers = new HashMap<>();
     }
 
     /**
@@ -53,8 +65,8 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
      * @param requestExchangeId The request exchange id to which the callback should be registered
      * @param responseCallback  The objectDataReply which should be applied if the request is instance of the specified class above
      */
-    public void addCallbackHandler(UUID requestExchangeId, IResponseCallback responseCallback) {
-        this.callbackHandlers.put(requestExchangeId, responseCallback);
+    public void addResponseCallbackHandler(UUID requestExchangeId, IResponseCallback responseCallback) {
+        this.responseCallbackHandlers.put(requestExchangeId, responseCallback);
     }
 
     /**
@@ -62,17 +74,46 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
      *
      * @param requestExchangeId The request exchange id of which the callback handler should be removed
      */
-    public void removeCallbackHandler(UUID requestExchangeId) {
-        this.callbackHandlers.remove(requestExchangeId);
+    public void removeResponseCallbackHandler(UUID requestExchangeId) {
+        this.responseCallbackHandlers.remove(requestExchangeId);
     }
 
     /**
-     * Returns all registered callbackHandlers
+     * Returns all registered responseCallbackHandlers
      *
      * @return All registered response callbacks
      */
-    public Map<UUID, IResponseCallback> getCallbackHandlers() {
-        return this.callbackHandlers;
+    public Map<UUID, IResponseCallback> getResponseCallbackHandlers() {
+        return this.responseCallbackHandlers;
+    }
+
+    /**
+     * Add a request callback handler which will be called if an request
+     * is incoming matching the given class
+     *
+     * @param clazz           The request class to register the callback (Any implementation of {@link IRequest})
+     * @param requestCallback The request callback which should be called if the specified request gets to the client (Any implementation of {@link IRequestCallback})
+     */
+    public void addRequestCallbackHandler(Class<? extends IRequest> clazz, Class<? extends IRequestCallback> requestCallback) {
+        this.requestCallbackHandlers.put(clazz, requestCallback);
+    }
+
+    /**
+     * Remove the callback handler for the given request class
+     *
+     * @param clazz The request class for which to remove the callback handler
+     */
+    public void removeRequestCallbackHandler(Class<? extends IRequest> clazz) {
+        this.requestCallbackHandlers.remove(clazz);
+    }
+
+    /**
+     * Returns all registered request callback handlers
+     *
+     * @return All registered request callback handlers
+     */
+    public Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> getRequestCallbackHandlers() {
+        return this.requestCallbackHandlers;
     }
 
     @Override
@@ -81,23 +122,34 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
 
         // forward the request to the correct data reply instance
         if (request instanceof IRequest) {
-            logger.info("Starting thread for request " + ((IRequest) request).getExchangeId());
-            // Set the client so that the request can send back responses
-            ((IRequest) request).setClient(this.client);
-            // let the request be handled in its own thread
-            new Thread((IRequest) request).start();
+            if (this.requestCallbackHandlers.containsKey(request.getClass())) {
+                logger.debug("Using " + this.requestCallbackHandlers.get(request.getClass()).getName() + " as handler for request " + ((IRequest) request).getExchangeId());
+                Class<? extends IRequestCallback> requestCallbackClass = this.requestCallbackHandlers.get(request.getClass());
 
-            return null;
+                // create a new instance running in its own thread
+                IRequestCallback requestCallback = requestCallbackClass.newInstance();
+                requestCallback.setClient(this.client);
+
+                requestCallback.setRequest((IRequest) request);
+
+                Thread thread = new Thread(requestCallback);
+                thread.setName("RequestCallback for request " + ((IRequest) request).getExchangeId());
+                thread.start();
+
+
+                return null;
+            }
         }
 
         // if we receive a response, we forward it to the correct callback handler
         if (request instanceof IResponse) {
-            for (Map.Entry<UUID, IResponseCallback> entry : this.callbackHandlers.entrySet()) {
-                if (entry.getKey().equals(((IResponse) request).getExchangeId())) {
-                    logger.info("Using " + entry.getValue().getClass().getName() + " as handler for response " + entry.getKey().toString());
-                    entry.getValue().onResponse((IResponse) request);
-                    return null;
-                }
+            if (this.responseCallbackHandlers.containsKey(((IResponse) request).getExchangeId())) {
+                IResponseCallback responseCallback = this.responseCallbackHandlers.get(((IResponse) request).getExchangeId());
+                logger.debug("Using " + responseCallback.getClass().getName() + " as handler for response " + ((IResponse) request).getExchangeId());
+
+                responseCallback.onResponse((IResponse) request);
+
+                return null;
             }
         }
 
