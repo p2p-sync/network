@@ -50,6 +50,11 @@ public class ClientManager implements IClientManager {
     protected String publicKeyContentKey;
 
     /**
+     * The content key where the salt of a particular user is stored
+     */
+    protected String saltContentKey;
+
+    /**
      * The domain key
      */
     protected String domainKey;
@@ -57,11 +62,12 @@ public class ClientManager implements IClientManager {
     protected ISymmetricEncryption aesEncryption;
 
 
-    public ClientManager(IStorageAdapter storageAdapter, String locationContentKey, String privateKeyContentKey, String publicKeyContentKey, String domainKey) {
+    public ClientManager(IStorageAdapter storageAdapter, String locationContentKey, String privateKeyContentKey, String publicKeyContentKey, String saltContentKey, String domainKey) {
         this.storageAdapter = storageAdapter;
         this.locationContentKey = locationContentKey;
         this.privateKeyContentKey = privateKeyContentKey;
         this.publicKeyContentKey = publicKeyContentKey;
+        this.saltContentKey = saltContentKey;
         this.domainKey = domainKey;
         this.aesEncryption = new AesEncryption();
     }
@@ -246,6 +252,51 @@ public class ClientManager implements IClientManager {
         }
 
         return publicKey;
+    }
+
+    @Override
+    public void addSalt(IUser user)
+            throws InputOutputException {
+        DhtPathElement dhtPathElement = new DhtPathElement(
+                user.getUserName(),
+                this.saltContentKey,
+                this.domainKey
+        );
+
+        byte[] bytes;
+        try {
+            bytes = ByteSerializer.toBytes(user.getSalt());
+        } catch (IOException e) {
+            throw new InputOutputException(e);
+        }
+
+        this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
+    }
+
+    @Override
+    public String getSalt(IUser user)
+            throws InputOutputException {
+        DhtPathElement dhtPathElement = new DhtPathElement(
+                user.getUserName(),
+                this.saltContentKey,
+                this.domainKey
+        );
+
+        byte[] bytes = this.storageAdapter.read(dhtPathElement);
+
+        if (0 == bytes.length) {
+            // there was no element stored in the dht
+            return null;
+        }
+
+        String salt;
+        try {
+            salt = (String) ByteSerializer.fromBytes(bytes);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new InputOutputException(e);
+        }
+
+        return salt;
     }
 
     @Override

@@ -80,6 +80,7 @@ public class ClientManagerTest {
                 org.rmatil.sync.network.config.Config.IPv4.getLocationsContentKey(),
                 org.rmatil.sync.network.config.Config.IPv4.getPrivateKeyContentKey(),
                 org.rmatil.sync.network.config.Config.IPv4.getPublicKeyContentKey(),
+                org.rmatil.sync.network.config.Config.IPv4.getSaltContentKey(),
                 org.rmatil.sync.network.config.Config.IPv4.getDomainKey()
         );
         clientManager2 = new ClientManager(
@@ -87,6 +88,7 @@ public class ClientManagerTest {
                 org.rmatil.sync.network.config.Config.IPv4_2.getLocationsContentKey(),
                 org.rmatil.sync.network.config.Config.IPv4_2.getPrivateKeyContentKey(),
                 org.rmatil.sync.network.config.Config.IPv4_2.getPublicKeyContentKey(),
+                org.rmatil.sync.network.config.Config.IPv4_2.getSaltContentKey(),
                 org.rmatil.sync.network.config.Config.IPv4.getDomainKey()
         );
         clientManager3 = new ClientManager(
@@ -94,6 +96,7 @@ public class ClientManagerTest {
                 org.rmatil.sync.network.config.Config.IPv4_3.getLocationsContentKey(),
                 org.rmatil.sync.network.config.Config.IPv4_3.getPrivateKeyContentKey(),
                 org.rmatil.sync.network.config.Config.IPv4_3.getPublicKeyContentKey(),
+                org.rmatil.sync.network.config.Config.IPv4_3.getSaltContentKey(),
                 org.rmatil.sync.network.config.Config.IPv4.getDomainKey()
         );
 
@@ -243,6 +246,21 @@ public class ClientManagerTest {
 
         assertNotNull("Other client should be able to fetch public key of user1", fetchedPk3);
         assertArrayEquals("fetched public key is not the same (3)", user1.getPublicKey().getEncoded(), fetchedPk3.getEncoded());
+    }
+
+    @Test
+    public void testSetAndGetSalt()
+            throws InputOutputException {
+        clientManager1.addSalt(user1);
+
+        String fetchedSalt = clientManager1.getSalt(user1);
+        String fetchedSalt2 = clientManager2.getSalt(user1);
+
+        assertEquals("Salt is not equals", user1.getSalt(), fetchedSalt);
+        assertEquals("Salt2 is not equals", user1.getSalt(), fetchedSalt2);
+
+        String emptySalt = clientManager3.getSalt(user2);
+        assertNull("Salt should be null since never stored", emptySalt);
     }
 
 }

@@ -17,6 +17,7 @@ public class User implements IUser {
 
     protected String               userName;
     protected String               password;
+    protected String               salt;
     protected PublicKey            publicKey;
     protected PrivateKey           privateKey;
     protected List<ClientLocation> clientLocations;
@@ -41,6 +42,7 @@ public class User implements IUser {
             throws SecurityException {
         this.userName = userName;
         this.password = password;
+        this.salt = salt;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
         this.clientLocations = clientLocations;
@@ -55,6 +57,11 @@ public class User implements IUser {
     @Override
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public String getSalt() {
+        return salt;
     }
 
     @Override

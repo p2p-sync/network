@@ -28,6 +28,13 @@ public interface IUser {
     String getPassword();
 
     /**
+     * Returns the salt of the user
+     *
+     * @return The salt of the user
+     */
+    String getSalt();
+
+    /**
      * Returns the public key of the user
      *
      * @return The public key
@@ -53,9 +60,9 @@ public interface IUser {
      * Note, that this list must be maintained manually
      * using a location manager
      *
-     * @see IClientManager The client manager to maintain locations, private and public keys
-     *
      * @return The list of locations
+     *
+     * @see IClientManager The client manager to maintain locations, private and public keys
      */
     List<ClientLocation> getClientLocations();
 

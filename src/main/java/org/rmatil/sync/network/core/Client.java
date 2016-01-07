@@ -74,6 +74,7 @@ public class Client implements IClient {
                 this.config.getLocationsContentKey(),
                 this.config.getPrivateKeyContentKey(),
                 this.config.getLocationsContentKey(),
+                this.config.getSaltContentKey(),
                 this.config.getDomainKey()
         );
 
@@ -142,6 +143,7 @@ public class Client implements IClient {
                     this.config.getLocationsContentKey(),
                     this.config.getPrivateKeyContentKey(),
                     this.config.getLocationsContentKey(),
+                    this.config.getSaltContentKey(),
                     this.config.getDomainKey()
             );
 
@@ -236,6 +238,15 @@ public class Client implements IClient {
                             .bindings(this.bindings)
                             .start()
             ).start();
+
+            // TODO: https://github.com/p2p-sync/network/issues/2
+            // TODO: 1. join network without public key
+            // TODO: 2. fetch public key, private key, salt
+            // TODO: 3. generate secret key for user with salt and pw
+            // TODO: 4. add secret key to user
+            // TODO: 5. decrypt private key with secret key from user
+            // TODO: 6. set public-private keypair in the DHT
+
 
             if (null != this.objectDataReplyHandler) {
                 logger.info("Setting object data reply...");

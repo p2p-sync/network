@@ -99,4 +99,26 @@ public interface IClientManager {
     PublicKey getPublicKey(IUser user)
             throws InputOutputException;
 
+    /**
+     * Add the salt from the given user
+     *
+     * @param user The user of which to add its salt
+     *
+     * @throws InputOutputException If accessing the storage layer failed
+     */
+    void addSalt(IUser user)
+            throws InputOutputException;
+
+    /**
+     * Get the salt of the given user from the user
+     *
+     * @param user The user from which to get the salt
+     *
+     * @return The salt
+     *
+     * @throws InputOutputException If accessing the storage layer failed
+     */
+    String getSalt(IUser user)
+            throws InputOutputException;
+
 }

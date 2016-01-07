@@ -84,6 +84,7 @@ public class NetworkHandlerTest {
                 Config.IPv4.getLocationsContentKey(),
                 Config.IPv4.getPrivateKeyContentKey(),
                 Config.IPv4.getPublicKeyContentKey(),
+                Config.IPv4.getSaltContentKey(),
                 Config.IPv4.getDomainKey()
         );
 
@@ -96,6 +97,7 @@ public class NetworkHandlerTest {
                 Config.IPv4.getLocationsContentKey(),
                 Config.IPv4.getPrivateKeyContentKey(),
                 Config.IPv4.getPublicKeyContentKey(),
+                Config.IPv4.getSaltContentKey(),
                 Config.IPv4.getDomainKey()
         );
     }
