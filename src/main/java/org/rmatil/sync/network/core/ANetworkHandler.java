@@ -31,6 +31,8 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
     public static final long MAX_WAITING_TIME = 30000L;
 
+    protected CountDownLatch waitForSentCountDownLatch;
+
     /**
      * The countdown latch which will be completed once all
      * notified clients have responded
@@ -59,6 +61,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
     public ANetworkHandler(IClient client) {
         this.client = client;
         this.notifiedClients = new HashMap<>();
+        this.waitForSentCountDownLatch = new CountDownLatch(1);
     }
 
     @Override
@@ -103,17 +106,22 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
         // init count down latch with size of all clients
         this.countDownLatch = new CountDownLatch(this.notifiedClients.size());
+        this.waitForSentCountDownLatch.countDown();
     }
 
     @Override
     public void await()
             throws InterruptedException {
+        // first wait that count down latch for sending is initialized
+        this.waitForSentCountDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
         this.countDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void await(long timeout, TimeUnit timeUnit)
             throws InterruptedException {
+        // first wait that count down latch for sending is initialized
+        this.waitForSentCountDownLatch.await(timeout, timeUnit);
         this.countDownLatch.await(timeout, timeUnit);
     }
 

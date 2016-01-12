@@ -124,9 +124,6 @@ public class NetworkHandlerTest {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(networkHandler);
 
-        // wait a bit until thread has started
-        Thread.sleep(100L);
-
         // wait until all notified clients have responded
         networkHandler.await();
 
