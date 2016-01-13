@@ -4,6 +4,7 @@ import net.tomp2p.futures.FutureDirect;
 import org.rmatil.sync.network.api.*;
 import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
+import org.rmatil.sync.network.core.messaging.FutureDirectListener;
 import org.rmatil.sync.network.core.model.ClientDevice;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.slf4j.Logger;
@@ -86,7 +87,11 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
                 this.client.getObjectDataReplyHandler().addResponseCallbackHandler(request.getExchangeId(), this);
                 FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), request);
 
-                futureDirect.await();
+                FutureDirectListener futureDirectListener = new FutureDirectListener();
+                futureDirect.addListener(futureDirectListener);
+
+                // await using a listener instead of the future direct directly
+                futureDirectListener.await();
 
                 if (futureDirect.isFailed()) {
                     throw new ObjectSendFailedException("Failed to sent request " + request.getExchangeId() + ". Message: " + futureDirect.failedReason());
