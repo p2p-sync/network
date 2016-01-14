@@ -119,7 +119,11 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
             throws InterruptedException {
         // first wait that count down latch for sending is initialized
         this.waitForSentCountDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
-        this.countDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
+
+        // we might have had an error in run(), then the latch will not be initialized
+        if (null != this.countDownLatch) {
+            this.countDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override
@@ -127,7 +131,11 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
             throws InterruptedException {
         // first wait that count down latch for sending is initialized
         this.waitForSentCountDownLatch.await(timeout, timeUnit);
-        this.countDownLatch.await(timeout, timeUnit);
+
+        // we might have had an error in run(), then the latch will not be initialized
+        if (null != this.countDownLatch) {
+            this.countDownLatch.await(timeout, timeUnit);
+        }
     }
 
     @Override
