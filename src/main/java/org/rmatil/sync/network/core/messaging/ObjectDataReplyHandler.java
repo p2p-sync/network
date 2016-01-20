@@ -39,6 +39,11 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     protected IClient client;
 
     /**
+     * A flag indicating that a master peer has been elected
+     */
+    protected boolean isMasterElected;
+
+    /**
      * @param client                   The client used for sending back the responses of a request
      * @param responseCallbackHandlers A map of all registered responseCallbackHandlers. Specify as key the exchange id of the request
      *                                 the corresponding objectDataReply should be applied to if the request matches the class
@@ -114,6 +119,24 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
      */
     public Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> getRequestCallbackHandlers() {
         return this.requestCallbackHandlers;
+    }
+
+    /**
+     * Returns true, if a master client is elected
+     *
+     * @return True, if a master is elected, false otherwise
+     */
+    public boolean isMasterElected() {
+        return isMasterElected;
+    }
+
+    /**
+     * Set the flag if a master is selected
+     *
+     * @param masterElected True, if a master is selected in the network, false otherwise
+     */
+    public void setMasterElected(boolean masterElected) {
+        isMasterElected = masterElected;
     }
 
     @Override
