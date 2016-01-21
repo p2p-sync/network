@@ -1,16 +1,16 @@
 package org.rmatil.sync.network.core;
 
-import io.netty.channel.ThreadPerChannelEventLoopGroup;
-import io.netty.channel.oio.OioEventLoopGroup;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.EventExecutorGroup;
 import net.tomp2p.connection.Bindings;
 import net.tomp2p.connection.ChannelClientConfiguration;
 import net.tomp2p.connection.ChannelServerConfiguration;
 import net.tomp2p.connection.StandardProtocolFamily;
 import net.tomp2p.dht.PeerBuilderDHT;
 import net.tomp2p.dht.PeerDHT;
-import net.tomp2p.futures.*;
+import net.tomp2p.futures.BaseFuture;
+import net.tomp2p.futures.FutureBootstrap;
+import net.tomp2p.futures.FutureDirect;
+import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.p2p.PeerBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
@@ -37,6 +37,14 @@ import java.util.UUID;
 
 
 public class Client implements IClient {
+
+    /**
+     * The maximum of concurrent connections we allow netty to use.
+     * Using Integer.MAX_VALUE will result in a MemoryOverFlowException.
+     *
+     * @see <a href="https://github.com/p2p-sync/network/issues/3">https://github.com/p2p-sync/network/issues/3</a>
+     */
+    public final static int MAX_CONCURRENT_CONNECTIONS = 100000;
 
     protected final static Logger logger = LoggerFactory.getLogger(Client.class);
 
@@ -239,10 +247,10 @@ public class Client implements IClient {
         try {
             // limit of 10 concurrent connections
             ChannelServerConfiguration serverConfiguration = PeerBuilder.createDefaultChannelServerConfiguration();
-            serverConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(Integer.MAX_VALUE)));
+            serverConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(MAX_CONCURRENT_CONNECTIONS)));
 
             ChannelClientConfiguration clientConfiguration = PeerBuilder.createDefaultChannelClientConfiguration();
-            clientConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(Integer.MAX_VALUE)));
+            clientConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(MAX_CONCURRENT_CONNECTIONS)));
 
             this.peerDht = new PeerBuilderDHT(
                     new PeerBuilder(new Number160(rnd))
