@@ -1,6 +1,12 @@
 package org.rmatil.sync.network.core;
 
+import io.netty.channel.ThreadPerChannelEventLoopGroup;
+import io.netty.channel.oio.OioEventLoopGroup;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 import net.tomp2p.connection.Bindings;
+import net.tomp2p.connection.ChannelClientConfiguration;
+import net.tomp2p.connection.ChannelServerConfiguration;
 import net.tomp2p.connection.StandardProtocolFamily;
 import net.tomp2p.dht.PeerBuilderDHT;
 import net.tomp2p.dht.PeerDHT;
@@ -231,8 +237,17 @@ public class Client implements IClient {
         }
 
         try {
+            // limit of 10 concurrent connections
+            ChannelServerConfiguration serverConfiguration = PeerBuilder.createDefaultChannelServerConfiguration();
+            serverConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(50)));
+
+            ChannelClientConfiguration clientConfiguration = PeerBuilder.createDefaultChannelClientConfiguration();
+            clientConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(50)));
+
             this.peerDht = new PeerBuilderDHT(
                     new PeerBuilder(new Number160(rnd))
+                            .channelServerConfiguration(serverConfiguration)
+                            .channelClientConfiguration(clientConfiguration)
                             .keyPair(this.user.getKeyPair())
                             .ports(this.config.getPort())
                             .bindings(this.bindings)
