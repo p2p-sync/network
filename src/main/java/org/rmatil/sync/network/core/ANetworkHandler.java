@@ -1,10 +1,10 @@
 package org.rmatil.sync.network.core;
 
+import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureDirect;
 import org.rmatil.sync.network.api.*;
 import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
-import org.rmatil.sync.network.core.messaging.FutureDirectListener;
 import org.rmatil.sync.network.core.model.ClientDevice;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
      * A map having the client device which responded along with its response
      * representing all clients which have responded to the initial request
      */
-    protected Map<ClientDevice, FutureDirect> notifiedClients;
+    final protected Map<ClientDevice, FutureDirect> notifiedClients;
 
     /**
      * Indicates whether a request has been sent yet to any client
@@ -76,37 +76,49 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
         List<ClientLocation> clientLocations = request.getReceiverAddresses();
 
         // offer file
+        final CountDownLatch latch = new CountDownLatch(clientLocations.size());
         for (ClientLocation entry : clientLocations) {
             if (entry.getPeerAddress().equals(this.client.getPeerAddress())) {
                 logger.debug("Ignoring receiver address " + entry.getIpAddress() + ":" + entry.getPort() + " since it is the own client's address");
+                latch.countDown();
                 continue;
             }
 
-            logger.debug("Sending request " + request.getExchangeId() + " to client " + entry.getIpAddress() + ":" + entry.getPort());
+            logger.debug("Sending request " + request.getExchangeId() + " to client " + entry.getIpAddress() + ":" + entry.getPort() + ". Timestamp: " + System.currentTimeMillis());
             try {
                 this.client.getObjectDataReplyHandler().addResponseCallbackHandler(request.getExchangeId(), this);
-                FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), request);
+                final FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), request);
 
-                FutureDirectListener futureDirectListener = new FutureDirectListener();
-                futureDirect.addListener(futureDirectListener);
+                futureDirect.addListener(new BaseFutureAdapter<FutureDirect>() {
+                    @Override
+                    public void operationComplete(FutureDirect future)
+                            throws Exception {
+                        // we got a response here
+                        latch.countDown();
 
-                // await using a listener instead of the future direct directly
-                futureDirectListener.await();
+                        if (futureDirect.isFailed()) {
+                            logger.error("Failed to sent request " + request.getExchangeId() + ". Message: " + futureDirect.failedReason());
+                        }
 
-                if (futureDirect.isFailed()) {
-                    throw new ObjectSendFailedException("Failed to sent request " + request.getExchangeId() + ". Message: " + futureDirect.failedReason());
-                }
+                        ClientDevice clientDevice = new ClientDevice(
+                                client.getUser().getUserName(),
+                                entry.getClientDeviceId(),
+                                entry.getPeerAddress()
+                        );
+                        notifiedClients.put(clientDevice, futureDirect);
+                    }
+                });
 
-                ClientDevice clientDevice = new ClientDevice(
-                        this.client.getUser().getUserName(),
-                        entry.getClientDeviceId(),
-                        entry.getPeerAddress()
-                );
-
-                this.notifiedClients.put(clientDevice, futureDirect);
-            } catch (ObjectSendFailedException | InterruptedException e) {
+            } catch (ObjectSendFailedException e) {
                 logger.error("Failed to send request to client " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Message: " + e.getMessage());
             }
+        }
+
+        // await using a listener instead of the future direct directly
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            logger.error("Got interrupted while waiting for completion of sending request to all clients. Message: " + e.getMessage(), e);
         }
 
         // init count down latch with size of all clients
