@@ -239,10 +239,10 @@ public class Client implements IClient {
         try {
             // limit of 10 concurrent connections
             ChannelServerConfiguration serverConfiguration = PeerBuilder.createDefaultChannelServerConfiguration();
-            serverConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(50)));
+            serverConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(Integer.MAX_VALUE)));
 
             ChannelClientConfiguration clientConfiguration = PeerBuilder.createDefaultChannelClientConfiguration();
-            clientConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(50)));
+            clientConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(Integer.MAX_VALUE)));
 
             this.peerDht = new PeerBuilderDHT(
                     new PeerBuilder(new Number160(rnd))
