@@ -44,7 +44,7 @@ public class Client implements IClient {
      *
      * @see <a href="https://github.com/p2p-sync/network/issues/3">https://github.com/p2p-sync/network/issues/3</a>
      */
-    public final static int MAX_CONCURRENT_CONNECTIONS = 100000;
+    public final static int MAX_CONCURRENT_CONNECTIONS = 10000;
 
     protected final static Logger logger = LoggerFactory.getLogger(Client.class);
 
