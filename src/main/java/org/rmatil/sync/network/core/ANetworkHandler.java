@@ -10,6 +10,7 @@ import org.rmatil.sync.network.core.model.ClientLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,28 +87,42 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
             logger.debug("Sending request " + request.getExchangeId() + " to client " + entry.getIpAddress() + ":" + entry.getPort() + ". Timestamp: " + System.currentTimeMillis());
             try {
-                this.client.getObjectDataReplyHandler().addResponseCallbackHandler(request.getExchangeId(), this);
                 final FutureDirect futureDirect = this.client.sendDirect(entry.getPeerAddress(), request);
 
-                futureDirect.addListener(new BaseFutureAdapter<FutureDirect>() {
-                    @Override
-                    public void operationComplete(FutureDirect future)
-                            throws Exception {
-                        // we got a response here
-                        latch.countDown();
+                final ClientDevice clientDevice = new ClientDevice(
+                        client.getUser().getUserName(),
+                        entry.getClientDeviceId(),
+                        entry.getPeerAddress()
+                );
 
-                        if (futureDirect.isFailed()) {
-                            logger.error("Failed to sent request " + request.getExchangeId() + ". Message: " + futureDirect.failedReason());
-                        }
 
-                        ClientDevice clientDevice = new ClientDevice(
-                                client.getUser().getUserName(),
-                                entry.getClientDeviceId(),
-                                entry.getPeerAddress()
-                        );
-                        notifiedClients.put(clientDevice, futureDirect);
+                // if the future is already completed, the future listener will not be called,
+                // therefore we have to countdown already here!
+                if (futureDirect.isCompleted()) {
+                    if (futureDirect.isFailed()) {
+                        logger.error("Failed to sent request " + request.getExchangeId() + ". Message: " + futureDirect.failedReason());
                     }
-                });
+
+                    notifiedClients.put(clientDevice, futureDirect);
+                    latch.countDown();
+                } else {
+                    // operation complete is only invoked, if the future is not completed yet!
+                    futureDirect.addListener(new BaseFutureAdapter<FutureDirect>() {
+                        @Override
+                        public void operationComplete(FutureDirect future)
+                                throws Exception {
+                            logger.trace("Got operationComplete");
+                            // we got a response here
+                            latch.countDown();
+
+                            if (futureDirect.isFailed()) {
+                                logger.error("Failed to sent request " + request.getExchangeId() + ". Message: " + futureDirect.failedReason());
+                            }
+
+                            notifiedClients.put(clientDevice, futureDirect);
+                        }
+                    });
+                }
 
             } catch (ObjectSendFailedException e) {
                 logger.error("Failed to send request to client " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Message: " + e.getMessage());
@@ -131,11 +146,8 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
             throws InterruptedException {
         // first wait that count down latch for sending is initialized
         this.waitForSentCountDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
+        this.countDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
 
-        // we might have had an error in run(), then the latch will not be initialized
-        if (null != this.countDownLatch) {
-            this.countDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
-        }
     }
 
     @Override
@@ -143,11 +155,8 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
             throws InterruptedException {
         // first wait that count down latch for sending is initialized
         this.waitForSentCountDownLatch.await(timeout, timeUnit);
+        this.countDownLatch.await(timeout, timeUnit);
 
-        // we might have had an error in run(), then the latch will not be initialized
-        if (null != this.countDownLatch) {
-            this.countDownLatch.await(timeout, timeUnit);
-        }
     }
 
     @Override

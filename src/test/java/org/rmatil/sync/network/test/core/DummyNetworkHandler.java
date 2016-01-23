@@ -34,6 +34,7 @@ public class DummyNetworkHandler extends ANetworkHandler<Boolean> {
         );
 
         logger.info("Creating request " + exchangeId);
+        this.client.getObjectDataReplyHandler().addResponseCallbackHandler(exchangeId, this);
         IRequest dummyRequest;
         try {
             dummyRequest = new DummyRequest(exchangeId, clientDevice, this.clientManager.getClientLocations(this.client.getUser()));
