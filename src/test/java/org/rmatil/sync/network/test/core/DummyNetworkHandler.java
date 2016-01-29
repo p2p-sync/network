@@ -53,8 +53,6 @@ public class DummyNetworkHandler extends ANetworkHandler<Boolean> {
 
     @Override
     public void onResponse(IResponse response) {
-        logger.info("Received response " + response.getExchangeId());
-
         super.onResponse(response);
     }
 

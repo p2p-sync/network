@@ -157,7 +157,9 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
     @Override
     public void onResponse(IResponse response) {
-        try {
+		logger.info("Received response for exchange " + response.getExchangeId() + " of client " + response.getClientDevice().getClientDeviceId() + " (" + response.getClientDevice().getPeerAddress().inetAddress().getHostName() + ":" + response.getClientDevice().getPeerAddress().tcpPort() + ")");
+
+		try {
             this.waitForSentCountDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             logger.error("Got interrupted while waiting that request has been sent to al clients. Message: " + e.getMessage());
