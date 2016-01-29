@@ -1,11 +1,10 @@
 package org.rmatil.sync.network.api;
 
+import org.rmatil.sync.network.core.IdentifierMap;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
-import java.util.Map;
-
 /**
- * An interface for a key value store
+ * An interface for a key-value-value-key store
  *
  * @param <K> The type of the key
  * @param <V> The type of the value
@@ -42,7 +41,19 @@ public interface IIdentifierManager<K, V> {
      *
      * @throws InputOutputException If accessing the storage layer failed
      */
-    V getIdentifierValue(K key)
+    V getValue(K key)
+            throws InputOutputException;
+
+    /**
+     * Get the key of the given value
+     *
+     * @param value The value from which to get its key
+     *
+     * @return The found key, or null, if the key was not found
+     *
+     * @throws InputOutputException If accessing the storage layer failed
+     */
+    K getKey(V value)
             throws InputOutputException;
 
     /**
@@ -52,6 +63,6 @@ public interface IIdentifierManager<K, V> {
      *
      * @throws InputOutputException If accessing the storage layer failed
      */
-    Map<K, V> getIdentifierMap()
+    IdentifierMap<K, V> getIdentifierMap()
             throws InputOutputException;
 }

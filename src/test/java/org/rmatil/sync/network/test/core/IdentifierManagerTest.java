@@ -6,6 +6,7 @@ import org.junit.rules.ExpectedException;
 import org.rmatil.sync.network.api.IIdentifierManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.core.IdentifierManager;
+import org.rmatil.sync.network.core.IdentifierMap;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
@@ -17,7 +18,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -126,12 +126,12 @@ public class IdentifierManagerTest {
         identifierManager.addIdentifier(KEY_1, VALUE_1);
 
         // user 1
-        UUID result = identifierManager.getIdentifierValue(KEY_1);
-        UUID result2 = identifierManager2.getIdentifierValue(KEY_1);
+        UUID result = identifierManager.getValue(KEY_1);
+        UUID result2 = identifierManager2.getValue(KEY_1);
 
         // since this manager is from a different user,
         // no key is stored
-        UUID result3 = identifierManager3.getIdentifierValue(KEY_1);
+        UUID result3 = identifierManager3.getValue(KEY_1);
 
         assertNotNull("Result should not be null", result);
         assertEquals("Result should be equal", VALUE_1, result);
@@ -145,7 +145,7 @@ public class IdentifierManagerTest {
             throws InputOutputException {
         identifierManager.addIdentifier(KEY_1, VALUE_1);
 
-        UUID result = identifierManager.getIdentifierValue(KEY_1);
+        UUID result = identifierManager.getValue(KEY_1);
         assertEquals("Result should be equal", VALUE_1, result);
 
         // we should be unable to remove a location from a different user's client
@@ -154,12 +154,12 @@ public class IdentifierManagerTest {
 
         // this should still have the result in it since the clientManager3 has a different user
         // and therefore a different private key -> no access to delete
-        UUID result2 = identifierManager.getIdentifierValue(KEY_1);
+        UUID result2 = identifierManager.getValue(KEY_1);
         assertEquals("Result should still be equal after wrong delete request", VALUE_1, result2);
 
         // this should remove the location since the client has the same public key pair of the same user
         identifierManager2.removeIdentifier(KEY_1);
-        UUID result3 = identifierManager.getIdentifierValue(KEY_1);
+        UUID result3 = identifierManager.getValue(KEY_1);
         assertNull("Result should be null after deletion", result3);
     }
 
@@ -169,21 +169,26 @@ public class IdentifierManagerTest {
         identifierManager.addIdentifier(KEY_1, VALUE_1);
         identifierManager.addIdentifier(KEY_2, VALUE_2);
 
-        Map<String, UUID> result = identifierManager.getIdentifierMap();
-        Map<String, UUID> result2 = identifierManager.getIdentifierMap();
-        Map<String, UUID> result3 = identifierManager.getIdentifierMap();
+        IdentifierMap<String, UUID> result = identifierManager.getIdentifierMap();
+        IdentifierMap<String, UUID> result2 = identifierManager2.getIdentifierMap();
+        IdentifierMap<String, UUID> result3 = identifierManager3.getIdentifierMap();
 
-        assertEquals("Result has not both locations in it", 2, result.size());
-        assertEquals("Value1 should be contained", VALUE_1, result.get(KEY_1));
-        assertEquals("Value2 should be contained", VALUE_2, result.get(KEY_2));
+        assertEquals("Result has not both locations in it", 2, result.getKeyMap().size());
+        assertEquals("Result has not both locations in it", 2, result.getValueMap().size());
+        assertEquals("Value1 should be contained", VALUE_1, result.getKeyMap().get(KEY_1));
+        assertEquals("Value2 should be contained", VALUE_2, result.getKeyMap().get(KEY_2));
+        assertEquals("Key1 should be contained", KEY_1, result.getValueMap().get(VALUE_1));
+        assertEquals("Key2 should be contained", KEY_2, result.getValueMap().get(VALUE_2));
 
-        assertEquals("Result has not both locations in it", 2, result2.size());
-        assertEquals("Value1 should be contained", VALUE_1, result2.get(KEY_1));
-        assertEquals("Value2 should be contained", VALUE_2, result2.get(KEY_2));
+        assertEquals("Result has not both locations in it", 2, result2.getKeyMap().size());
+        assertEquals("Result has not both locations in it", 2, result2.getValueMap().size());
+        assertEquals("Value1 should be contained", VALUE_1, result2.getKeyMap().get(KEY_1));
+        assertEquals("Value2 should be contained", VALUE_2, result2.getKeyMap().get(KEY_2));
+        assertEquals("Key1 should be contained", KEY_1, result2.getValueMap().get(VALUE_1));
+        assertEquals("Key2 should be contained", KEY_2, result2.getValueMap().get(VALUE_2));
 
-        assertEquals("Result has not both locations in it", 2, result3.size());
-        assertEquals("Value1 should be contained", VALUE_1, result3.get(KEY_1));
-        assertEquals("Value2 should be contained", VALUE_2, result3.get(KEY_2));
+        assertEquals("Result has not both locations in it", 0, result3.getKeyMap().size());
+        assertEquals("Result has not both locations in it", 0, result3.getValueMap().size());
     }
 
     @Test
@@ -193,13 +198,13 @@ public class IdentifierManagerTest {
 
         // result should be null since user2 has not saved anything yet
         // in the DHT
-        UUID result = identifierManager3.getIdentifierValue(KEY_1);
+        UUID result = identifierManager3.getValue(KEY_1);
         assertNull("Result should be null", result);
 
         // add the key value to user2
         identifierManager3.addIdentifier(KEY_3, VALUE_3);
 
-        UUID result2 = identifierManager.getIdentifierValue(KEY_3);
+        UUID result2 = identifierManager.getValue(KEY_3);
         assertNull("Result should be null since client1 has a different storage", result2);
     }
 }

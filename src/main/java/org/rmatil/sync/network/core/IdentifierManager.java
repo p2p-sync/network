@@ -8,8 +8,6 @@ import org.rmatil.sync.persistence.core.dht.DhtPathElement;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -53,13 +51,10 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
                 this.domainKey
         );
 
-        Map<String, UUID> identifierMap = this.getIdentifierMap();
+        IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
 
-        if (null == identifierMap) {
-            identifierMap = new HashMap<>();
-        }
-
-        identifierMap.put(key, value);
+        identifierMap.getKeyMap().put(key, value);
+        identifierMap.getValueMap().put(value, key);
 
         byte[] bytes;
         try {
@@ -80,13 +75,11 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
                 this.domainKey
         );
 
-        Map<String, UUID> identifierMap = this.getIdentifierMap();
+        IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
 
-        if (null == identifierMap) {
-            return;
-        }
-
-        identifierMap.remove(key);
+        UUID value = identifierMap.getKeyMap().get(key);
+        identifierMap.getKeyMap().remove(key);
+        identifierMap.getValueMap().remove(value);
 
         byte[] bytes;
         try {
@@ -99,32 +92,23 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     }
 
     @Override
-    public UUID getIdentifierValue(String key)
+    public UUID getValue(String key)
             throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
-                this.username,
-                this.identifierContentKey,
-                this.domainKey
-        );
+        IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
 
-        byte[] bytes = this.storageAdapter.read(dhtPathElement);
-
-        if (0 == bytes.length) {
-            return null;
-        }
-
-        Map<String, UUID> identifierMap;
-        try {
-            identifierMap = (Map<String, UUID>) ByteSerializer.fromBytes(bytes);
-        } catch (IOException | ClassNotFoundException e) {
-            throw new InputOutputException(e);
-        }
-
-        return identifierMap.get(key);
+        return identifierMap.getKeyMap().get(key);
     }
 
     @Override
-    public Map<String, UUID> getIdentifierMap()
+    public String getKey(UUID value)
+            throws InputOutputException {
+        IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
+
+        return identifierMap.getValueMap().get(value);
+    }
+
+    @Override
+    public IdentifierMap<String, UUID> getIdentifierMap()
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 this.username,
@@ -135,12 +119,12 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
         byte[] bytes = this.storageAdapter.read(dhtPathElement);
 
         if (0 == bytes.length) {
-            return null;
+            return new IdentifierMap<>();
         }
 
-        Map<String, UUID> identifierMap;
+        IdentifierMap<String, UUID> identifierMap;
         try {
-            identifierMap = (Map<String, UUID>) ByteSerializer.fromBytes(bytes);
+            identifierMap = (IdentifierMap<String, UUID>) ByteSerializer.fromBytes(bytes);
         } catch (IOException | ClassNotFoundException e) {
             throw new InputOutputException(e);
         }

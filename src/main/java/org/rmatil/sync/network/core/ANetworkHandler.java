@@ -34,7 +34,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
     public static final long MAX_WAITING_TIME = 30000L;
 
-    protected CountDownLatch waitForSentCountDownLatch;
+    private final CountDownLatch waitForSentCountDownLatch;
 
     /**
      * The countdown latch which will be completed once all
