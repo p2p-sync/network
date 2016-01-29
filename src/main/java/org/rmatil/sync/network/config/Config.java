@@ -4,11 +4,13 @@ import net.tomp2p.dht.StorageLayer;
 
 public enum Config {
 
-    DEFAULT("LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4001, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER),
-    IPv6("LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4002, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER),
-    IPv4("LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4003, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER),
-    IPv4_2("LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4004, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER),
-    IPv4_3("LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4005, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER);
+    DEFAULT("IDENTIFIER", "LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4001, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER),
+    IPv6("IDENTIFIER", "LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4002, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER),
+    IPv4("IDENTIFIER", "LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4003, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER),
+    IPv4_2("IDENTIFIER", "LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4004, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER),
+    IPv4_3("IDENTIFIER", "LOCATION", "PRIVATE_KEY", "PUBLIC_KEY", "DOMAIN KEY", "SALT", 4005, false, 1024, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER, StorageLayer.ProtectionEnable.ALL, StorageLayer.ProtectionMode.NO_MASTER);
+
+    private String identifieContentKey;
 
     private String locationsContentKey;
 
@@ -35,6 +37,7 @@ public enum Config {
     private StorageLayer.ProtectionMode   protectionEntryMode;
 
     /**
+     * @param identifierContentKey   The location key used for identifier
      * @param locationsLocationKey   The location key used for ClientLocations
      * @param privateKeyContentKey   The content key used for the private key
      * @param publicKeyContentKey    The content key used for the public key
@@ -48,7 +51,8 @@ public enum Config {
      * @param protectionEntryEnable  Mode for domain protection
      * @param protectionEntryMode    Mode for domain protection
      */
-    Config(String locationsLocationKey,
+    Config(String identifierContentKey,
+           String locationsLocationKey,
            String privateKeyContentKey,
            String publicKeyContentKey,
            String saltContentKey,
@@ -61,6 +65,7 @@ public enum Config {
            StorageLayer.ProtectionEnable protectionEntryEnable,
            StorageLayer.ProtectionMode protectionEntryMode
     ) {
+        this.identifieContentKey = identifierContentKey;
         this.locationsContentKey = locationsLocationKey;
         this.privateKeyContentKey = privateKeyContentKey;
         this.publicKeyContentKey = publicKeyContentKey;
@@ -73,6 +78,10 @@ public enum Config {
         this.protectionDomainMode = protectionDomainMode;
         this.protectionEntryEnable = protectionEntryEnable;
         this.protectionEntryMode = protectionEntryMode;
+    }
+
+    public String getIdentifieContentKey() {
+        return identifieContentKey;
     }
 
     public String getLocationsContentKey() {
