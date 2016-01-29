@@ -171,6 +171,13 @@ public class Client implements IClient {
                     this.config.getDomainKey()
             );
 
+            this.identifierManager = new IdentifierManager(
+                    dhtStorageAdapter,
+                    this.user.getUserName(),
+                    this.config.getIdentifieContentKey(),
+                    this.config.getDomainKey()
+            );
+
             try {
                 this.locationManager.addClientLocation(this.user, clientLocation);
             } catch (InputOutputException e) {
