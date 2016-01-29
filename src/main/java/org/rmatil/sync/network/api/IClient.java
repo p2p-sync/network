@@ -68,6 +68,22 @@ public interface IClient {
     IUser getUser();
 
     /**
+     * Returns the client manager used.
+     * <p color="red">This is only initialised after starting the client</p>
+     *
+     * @return The client manager
+     */
+    IClientManager getClientManager();
+
+    /**
+     * Returns the identifier manager used.
+     * <p color="red">This is only initialised after starting the client</p>
+     *
+     * @return The identifier manager
+     */
+    IIdentifierManager<String> getIdentifierManager();
+
+    /**
      * Returns the peer address of the client
      *
      * @return The peer address

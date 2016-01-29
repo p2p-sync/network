@@ -77,6 +77,18 @@ public class ClientTest {
     }
 
     @Test
+    public void testGetClientManager() {
+        assertNull("ClientManager should be null before starting", clientIpV6.getClientManager());
+        assertNull("IdentifierManager should be null before starting", clientIpV6.getIdentifierManager());
+
+        boolean succeededV6 = clientIpV6.start();
+
+        assertTrue("Client should be started", succeededV6);
+        assertNotNull("ClientManager should be initialised after starting", clientIpV6.getClientManager());
+        assertNotNull("IdentifierManager should be initialised after starting", clientIpV6.getIdentifierManager());
+    }
+
+    @Test
     public void testBootstrapPeer()
             throws InterruptedException {
         boolean succeededV6 = clientIpV6.start();

@@ -16,6 +16,7 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import org.rmatil.sync.network.api.IClient;
 import org.rmatil.sync.network.api.IClientManager;
+import org.rmatil.sync.network.api.IIdentifierManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
@@ -64,6 +65,8 @@ public class Client implements IClient {
 
     protected IClientManager locationManager;
 
+    protected IIdentifierManager<String> identifierManager;
+
     public Client(Config config, IUser user, UUID uuid) {
         this.config = config;
         this.user = user;
@@ -89,6 +92,13 @@ public class Client implements IClient {
                 this.config.getPrivateKeyContentKey(),
                 this.config.getLocationsContentKey(),
                 this.config.getSaltContentKey(),
+                this.config.getDomainKey()
+        );
+
+        this.identifierManager = new IdentifierManager(
+                dhtStorageAdapter,
+                this.user.getUserName(),
+                this.config.getIdentifieContentKey(),
                 this.config.getDomainKey()
         );
 
@@ -216,6 +226,16 @@ public class Client implements IClient {
     @Override
     public IUser getUser() {
         return user;
+    }
+
+    @Override
+    public IClientManager getClientManager() {
+        return this.locationManager;
+    }
+
+    @Override
+    public IIdentifierManager<String> getIdentifierManager() {
+        return this.identifierManager;
     }
 
     @Override
