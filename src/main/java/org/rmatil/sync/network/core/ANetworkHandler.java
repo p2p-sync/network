@@ -1,6 +1,5 @@
 package org.rmatil.sync.network.core;
 
-import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureDirect;
 import org.rmatil.sync.network.api.*;
 import org.rmatil.sync.network.core.exception.ConnectionFailedException;
@@ -11,7 +10,6 @@ import org.rmatil.sync.network.core.model.ClientLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,13 +32,17 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
     public static final long MAX_WAITING_TIME = 30000L;
 
+    /**
+     * The countdown latch which will be completed once all
+     * connected clients have been notified
+     */
     private final CountDownLatch waitForSentCountDownLatch;
 
     /**
      * The countdown latch which will be completed once all
      * notified clients have responded
      */
-    protected CountDownLatch countDownLatch;
+    private CountDownLatch countDownLatch;
 
     /**
      * The client of this device
@@ -51,7 +53,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
      * A map having the client device which responded along with its response
      * representing all clients which have responded to the initial request
      */
-    final protected Map<ClientDevice, FutureDirect> notifiedClients;
+    protected final Map<ClientDevice, FutureDirect> notifiedClients;
 
     /**
      * Indicates whether a request has been sent yet to any client
@@ -153,15 +155,16 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
         return 0;
     }
 
-    /**
-     * <p color="red">Note, that each time a response is received, the count down latch
-     * should be decreased by one. Otherwise, {@link ANetworkHandler#await()} and/or {@link ANetworkHandler#await(long, TimeUnit)}
-     * will wait forever.</p>
-     * <p>
-     * {@inheritDoc}
-     */
     @Override
-    public abstract void onResponse(IResponse response);
+    public void onResponse(IResponse response) {
+        try {
+            this.waitForSentCountDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            logger.error("Got interrupted while waiting that request has been sent to al clients. Message: " + e.getMessage());
+        }
+
+        this.countDownLatch.countDown();
+    }
 
 
     @Override

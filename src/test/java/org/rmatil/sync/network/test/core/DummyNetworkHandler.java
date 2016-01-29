@@ -55,11 +55,11 @@ public class DummyNetworkHandler extends ANetworkHandler<Boolean> {
     public void onResponse(IResponse response) {
         logger.info("Received response " + response.getExchangeId());
 
-        super.countDownLatch.countDown();
+        super.onResponse(response);
     }
 
     @Override
     public Boolean getResult() {
-        return super.countDownLatch.getCount() == 0;
+        return super.isCompleted();
     }
 }
