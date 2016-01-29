@@ -15,7 +15,7 @@ import java.util.UUID;
 /**
  * A manager to dispense identifier-value pairs.
  */
-public class IdentifierManager implements IIdentifierManager<String> {
+public class IdentifierManager implements IIdentifierManager<String, UUID> {
 
     /**
      * The username which is used as location key
@@ -45,7 +45,7 @@ public class IdentifierManager implements IIdentifierManager<String> {
     }
 
     @Override
-    public void addIdentifier(UUID key, String value)
+    public void addIdentifier(String key, UUID value)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 this.username,
@@ -53,7 +53,7 @@ public class IdentifierManager implements IIdentifierManager<String> {
                 this.domainKey
         );
 
-        Map<UUID, String> identifierMap = this.getIdentifierMap();
+        Map<String, UUID> identifierMap = this.getIdentifierMap();
 
         if (null == identifierMap) {
             identifierMap = new HashMap<>();
@@ -72,7 +72,7 @@ public class IdentifierManager implements IIdentifierManager<String> {
     }
 
     @Override
-    public void removeIdentifier(UUID key)
+    public void removeIdentifier(String key)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 this.username,
@@ -80,7 +80,7 @@ public class IdentifierManager implements IIdentifierManager<String> {
                 this.domainKey
         );
 
-        Map<UUID, String> identifierMap = this.getIdentifierMap();
+        Map<String, UUID> identifierMap = this.getIdentifierMap();
 
         if (null == identifierMap) {
             return;
@@ -99,7 +99,7 @@ public class IdentifierManager implements IIdentifierManager<String> {
     }
 
     @Override
-    public String getIdentifierValue(UUID key)
+    public UUID getIdentifierValue(String key)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 this.username,
@@ -113,9 +113,9 @@ public class IdentifierManager implements IIdentifierManager<String> {
             return null;
         }
 
-        Map<UUID, String> identifierMap;
+        Map<String, UUID> identifierMap;
         try {
-            identifierMap = (Map<UUID, String>) ByteSerializer.fromBytes(bytes);
+            identifierMap = (Map<String, UUID>) ByteSerializer.fromBytes(bytes);
         } catch (IOException | ClassNotFoundException e) {
             throw new InputOutputException(e);
         }
@@ -124,7 +124,7 @@ public class IdentifierManager implements IIdentifierManager<String> {
     }
 
     @Override
-    public Map<UUID, String> getIdentifierMap()
+    public Map<String, UUID> getIdentifierMap()
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 this.username,
@@ -138,9 +138,9 @@ public class IdentifierManager implements IIdentifierManager<String> {
             return null;
         }
 
-        Map<UUID, String> identifierMap;
+        Map<String, UUID> identifierMap;
         try {
-            identifierMap = (Map<UUID, String>) ByteSerializer.fromBytes(bytes);
+            identifierMap = (Map<String, UUID>) ByteSerializer.fromBytes(bytes);
         } catch (IOException | ClassNotFoundException e) {
             throw new InputOutputException(e);
         }

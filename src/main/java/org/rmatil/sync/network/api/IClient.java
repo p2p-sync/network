@@ -81,7 +81,7 @@ public interface IClient {
      *
      * @return The identifier manager
      */
-    IIdentifierManager<String> getIdentifierManager();
+    IIdentifierManager<String, UUID> getIdentifierManager();
 
     /**
      * Returns the peer address of the client

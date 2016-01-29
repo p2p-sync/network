@@ -65,7 +65,7 @@ public class Client implements IClient {
 
     protected IClientManager locationManager;
 
-    protected IIdentifierManager<String> identifierManager;
+    protected IIdentifierManager<String, UUID> identifierManager;
 
     public Client(Config config, IUser user, UUID uuid) {
         this.config = config;
@@ -234,7 +234,7 @@ public class Client implements IClient {
     }
 
     @Override
-    public IIdentifierManager<String> getIdentifierManager() {
+    public IIdentifierManager<String, UUID> getIdentifierManager() {
         return this.identifierManager;
     }
 

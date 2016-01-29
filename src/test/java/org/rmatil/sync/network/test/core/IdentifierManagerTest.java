@@ -38,23 +38,23 @@ public class IdentifierManagerTest {
     protected static KeyPair keyPair1;
     protected static KeyPair keyPair2;
 
-    protected static IIdentifierManager<String> identifierManager;
-    protected static IIdentifierManager<String> identifierManager2;
-    protected static IIdentifierManager<String> identifierManager3;
+    protected static IIdentifierManager<String, UUID> identifierManager;
+    protected static IIdentifierManager<String, UUID> identifierManager2;
+    protected static IIdentifierManager<String, UUID> identifierManager3;
 
     protected static IUser          user1;
     protected static IUser          user2;
     protected static ClientLocation l1;
     protected static ClientLocation l2;
 
-    protected static final UUID   KEY_1   = UUID.randomUUID();
-    protected static final String VALUE_1 = "Hello there!";
+    protected static final String KEY_1   = "Hello there!";
+    protected static final UUID   VALUE_1 = UUID.randomUUID();
 
-    protected static final UUID   KEY_2   = UUID.randomUUID();
-    protected static final String VALUE_2 = "Ou, look who's here!";
+    protected static final String KEY_2   = "Ou, look who's here!";
+    protected static final UUID   VALUE_2 = UUID.randomUUID();
 
-    protected static final UUID   KEY_3   = UUID.randomUUID();
-    protected static final String VALUE_3 = "How are you?";
+    protected static final String KEY_3   = "How are you?";
+    protected static final UUID   VALUE_3 = UUID.randomUUID();
 
     @BeforeClass
     public static void setUp()
@@ -126,12 +126,12 @@ public class IdentifierManagerTest {
         identifierManager.addIdentifier(KEY_1, VALUE_1);
 
         // user 1
-        String result = identifierManager.getIdentifierValue(KEY_1);
-        String result2 = identifierManager2.getIdentifierValue(KEY_1);
+        UUID result = identifierManager.getIdentifierValue(KEY_1);
+        UUID result2 = identifierManager2.getIdentifierValue(KEY_1);
 
         // since this manager is from a different user,
         // no key is stored
-        String result3 = identifierManager3.getIdentifierValue(KEY_1);
+        UUID result3 = identifierManager3.getIdentifierValue(KEY_1);
 
         assertNotNull("Result should not be null", result);
         assertEquals("Result should be equal", VALUE_1, result);
@@ -145,7 +145,7 @@ public class IdentifierManagerTest {
             throws InputOutputException {
         identifierManager.addIdentifier(KEY_1, VALUE_1);
 
-        String result = identifierManager.getIdentifierValue(KEY_1);
+        UUID result = identifierManager.getIdentifierValue(KEY_1);
         assertEquals("Result should be equal", VALUE_1, result);
 
         // we should be unable to remove a location from a different user's client
@@ -154,12 +154,12 @@ public class IdentifierManagerTest {
 
         // this should still have the result in it since the clientManager3 has a different user
         // and therefore a different private key -> no access to delete
-        String result2 = identifierManager.getIdentifierValue(KEY_1);
+        UUID result2 = identifierManager.getIdentifierValue(KEY_1);
         assertEquals("Result should still be equal after wrong delete request", VALUE_1, result2);
 
         // this should remove the location since the client has the same public key pair of the same user
         identifierManager2.removeIdentifier(KEY_1);
-        String result3 = identifierManager.getIdentifierValue(KEY_1);
+        UUID result3 = identifierManager.getIdentifierValue(KEY_1);
         assertNull("Result should be null after deletion", result3);
     }
 
@@ -169,9 +169,9 @@ public class IdentifierManagerTest {
         identifierManager.addIdentifier(KEY_1, VALUE_1);
         identifierManager.addIdentifier(KEY_2, VALUE_2);
 
-        Map<UUID, String> result = identifierManager.getIdentifierMap();
-        Map<UUID, String> result2 = identifierManager.getIdentifierMap();
-        Map<UUID, String> result3 = identifierManager.getIdentifierMap();
+        Map<String, UUID> result = identifierManager.getIdentifierMap();
+        Map<String, UUID> result2 = identifierManager.getIdentifierMap();
+        Map<String, UUID> result3 = identifierManager.getIdentifierMap();
 
         assertEquals("Result has not both locations in it", 2, result.size());
         assertEquals("Value1 should be contained", VALUE_1, result.get(KEY_1));
@@ -193,13 +193,13 @@ public class IdentifierManagerTest {
 
         // result should be null since user2 has not saved anything yet
         // in the DHT
-        String result = identifierManager3.getIdentifierValue(KEY_1);
+        UUID result = identifierManager3.getIdentifierValue(KEY_1);
         assertNull("Result should be null", result);
 
         // add the key value to user2
         identifierManager3.addIdentifier(KEY_3, VALUE_3);
 
-        String result2 = identifierManager.getIdentifierValue(KEY_3);
+        UUID result2 = identifierManager.getIdentifierValue(KEY_3);
         assertNull("Result should be null since client1 has a different storage", result2);
     }
 }
