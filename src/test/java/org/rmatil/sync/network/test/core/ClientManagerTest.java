@@ -185,7 +185,18 @@ public class ClientManagerTest {
 
         // location manager of user2 wants to receive locations
         // from user1
-        List<ClientLocation> result = clientManager3.getClientLocations(user1);
+        List<ClientLocation> result = clientManager3.getClientLocations(new User(
+                user1.getUserName(),
+                "asdf",
+                "asf",
+                null,
+                null,
+                new ArrayList<>()
+        ));
+        assertEquals("Result has different amount of locations saved", 1, result.size());
+        assertThat("result does not contain location", result, hasItem(l1));
+
+        result = clientManager3.getClientLocations(user1.getUserName());
         assertEquals("Result has different amount of locations saved", 1, result.size());
         assertThat("result does not contain location", result, hasItem(l1));
 

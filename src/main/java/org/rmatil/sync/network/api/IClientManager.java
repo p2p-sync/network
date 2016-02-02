@@ -56,6 +56,18 @@ public interface IClientManager {
             throws InputOutputException;
 
     /**
+     * Gets the list of locations of the given user name
+     *
+     * @param username The username from which to get its client locations
+     *
+     * @return The list of client locations
+     *
+     * @throws InputOutputException If getting the locations failed
+     */
+    List<ClientLocation> getClientLocations(String username)
+            throws InputOutputException;
+
+    /**
      * Adds the private key of the given user to the storage
      *
      * @param user The user of which the private key is added

@@ -128,8 +128,20 @@ public class ClientManager implements IClientManager {
     @Override
     public List<ClientLocation> getClientLocations(IUser user)
             throws InputOutputException {
+
+        List<ClientLocation> locations = this.getClientLocations(user.getUserName());
+
+        user.getClientLocations().clear();
+        user.getClientLocations().addAll(locations);
+
+        return locations;
+    }
+
+    @Override
+    public List<ClientLocation> getClientLocations(String username)
+            throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
-                user.getUserName(),
+                username,
                 this.locationContentKey,
                 this.domainKey
         );
@@ -147,9 +159,6 @@ public class ClientManager implements IClientManager {
         } catch (IOException | ClassNotFoundException e) {
             throw new InputOutputException(e);
         }
-
-        user.getClientLocations().clear();
-        user.getClientLocations().addAll(locations);
 
         return locations;
     }
