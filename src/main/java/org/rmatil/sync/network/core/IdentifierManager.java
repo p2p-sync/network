@@ -43,7 +43,7 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     }
 
     @Override
-    public void addIdentifier(String key, UUID value)
+    public synchronized void addIdentifier(String key, UUID value)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 this.username,
@@ -67,7 +67,7 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     }
 
     @Override
-    public void removeIdentifier(String key)
+    public synchronized void removeIdentifier(String key)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 this.username,
@@ -92,7 +92,7 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     }
 
     @Override
-    public UUID getValue(String key)
+    public synchronized UUID getValue(String key)
             throws InputOutputException {
         IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
 
@@ -100,7 +100,7 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     }
 
     @Override
-    public String getKey(UUID value)
+    public synchronized String getKey(UUID value)
             throws InputOutputException {
         IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
 
@@ -108,7 +108,7 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     }
 
     @Override
-    public IdentifierMap<String, UUID> getIdentifierMap()
+    public synchronized IdentifierMap<String, UUID> getIdentifierMap()
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 this.username,
