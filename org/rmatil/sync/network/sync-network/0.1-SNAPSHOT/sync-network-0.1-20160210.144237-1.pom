@@ -12,10 +12,6 @@
         <repository>
             <id>tomp2p.net</id>
             <url>http://tomp2p.net/dev/mvn/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
         </repository>
         <repository>
             <id>commons-mvn-repo</id>
