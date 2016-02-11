@@ -1,6 +1,6 @@
 package org.rmatil.sync.network.api;
 
-import org.rmatil.sync.network.core.IdentifierMap;
+import org.rmatil.sync.network.core.model.IdentifierMap;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
 /**
