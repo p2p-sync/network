@@ -1,4 +1,4 @@
-package org.rmatil.sync.network.core;
+package org.rmatil.sync.network.core.model;
 
 import org.rmatil.sync.network.api.IIdentifierManager;
 

@@ -1,6 +1,7 @@
 package org.rmatil.sync.network.core;
 
 import org.rmatil.sync.network.api.IIdentifierManager;
+import org.rmatil.sync.network.core.model.IdentifierMap;
 import org.rmatil.sync.network.core.serialize.ByteSerializer;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.api.StorageType;
