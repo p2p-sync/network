@@ -112,6 +112,18 @@ public interface IClientManager {
             throws InputOutputException;
 
     /**
+     * Returns the public key of the given user's username
+     *
+     * @param username The name of the user from which to fetch its public key
+     *
+     * @return The found public key
+     *
+     * @throws InputOutputException If accessing the storage layer failed
+     */
+    PublicKey getPublicKey(String username)
+            throws InputOutputException;
+
+    /**
      * Add the salt from the given user
      *
      * @param user The user of which to add its salt

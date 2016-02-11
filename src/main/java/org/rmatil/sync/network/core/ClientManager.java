@@ -238,10 +238,17 @@ public class ClientManager implements IClientManager {
         this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
     }
 
+    @Override
     public PublicKey getPublicKey(IUser user)
             throws InputOutputException {
+        return this.getPublicKey(user.getUserName());
+    }
+
+    @Override
+    public PublicKey getPublicKey(String username)
+            throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
-                user.getUserName(),
+                username,
                 this.publicKeyContentKey,
                 this.domainKey
         );

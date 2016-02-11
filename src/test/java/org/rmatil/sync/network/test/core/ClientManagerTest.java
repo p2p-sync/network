@@ -246,11 +246,13 @@ public class ClientManagerTest {
         clientManager1.addPublicKey(user1);
 
         PublicKey fetchedPk = clientManager1.getPublicKey(user1);
+        PublicKey fetchedPk1 = clientManager1.getPublicKey(user1.getUserName());
         PublicKey fetchedPk2 = clientManager2.getPublicKey(user1);
 
         // first assure, that the clients of the same user are able to get the public key
         assertArrayEquals("Fetched public key is not the same (1)", user1.getPublicKey().getEncoded(), fetchedPk.getEncoded());
-        assertArrayEquals("Fetched public key is not the same (2)", user1.getPublicKey().getEncoded(), fetchedPk2.getEncoded());
+        assertArrayEquals("Fetched public key is not the same (2)", user1.getPublicKey().getEncoded(), fetchedPk1.getEncoded());
+        assertArrayEquals("Fetched public key is not the same (3)", user1.getPublicKey().getEncoded(), fetchedPk2.getEncoded());
 
         IUser anotherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user2.getPublicKey(), user2.getPrivateKey(), user1.getClientLocations());
         PublicKey fetchedPk3 = clientManager3.getPublicKey(anotherUser);
