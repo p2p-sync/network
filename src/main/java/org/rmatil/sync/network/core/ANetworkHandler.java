@@ -7,6 +7,7 @@ import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.FutureDirectListener;
 import org.rmatil.sync.network.core.model.ClientDevice;
 import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.persistence.exceptions.InputOutputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,7 +109,12 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
                 this.notifiedClients.put(clientDevice, futureDirect);
 
             } catch (ObjectSendFailedException e) {
-                logger.error("Failed to send request to client " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Message: " + e.getMessage());
+                logger.error("Failed to send request to client " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Removing this client from connected client locations. Message: " + e.getMessage());
+                try {
+                    this.client.getClientManager().removeClientLocation(this.client.getUser(), entry);
+                } catch (InputOutputException e1) {
+                    logger.error("Failed to remove client location " + entry);
+                }
             } catch (InterruptedException e) {
                 logger.error("Failed to send request to client " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Got interrupted while waiting for completion. Message: " + e.getMessage());
             }
@@ -157,9 +163,9 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
     @Override
     public void onResponse(IResponse response) {
-		logger.info("Received response for exchange " + response.getExchangeId() + " of client " + response.getClientDevice().getClientDeviceId() + " (" + response.getClientDevice().getPeerAddress().inetAddress().getHostName() + ":" + response.getClientDevice().getPeerAddress().tcpPort() + ")");
+        logger.info("Received response for exchange " + response.getExchangeId() + " of client " + response.getClientDevice().getClientDeviceId() + " (" + response.getClientDevice().getPeerAddress().inetAddress().getHostName() + ":" + response.getClientDevice().getPeerAddress().tcpPort() + ")");
 
-		try {
+        try {
             this.waitForSentCountDownLatch.await(MAX_WAITING_TIME, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             logger.error("Got interrupted while waiting that request has been sent to al clients. Message: " + e.getMessage());
