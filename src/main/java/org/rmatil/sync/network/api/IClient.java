@@ -1,8 +1,9 @@
 package org.rmatil.sync.network.api;
 
-import net.tomp2p.dht.PeerDHT;
 import net.tomp2p.futures.FutureDirect;
 import net.tomp2p.peers.PeerAddress;
+import org.rmatil.sync.network.core.exception.ConnectionException;
+import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 
@@ -17,8 +18,11 @@ public interface IClient {
      * Start the client as bootstrap peer
      *
      * @return True, if starting as bootstrap peer succeeded, false otherwise
+     *
+     * @throws ConnectionException If creating this node failed
      */
-    boolean start();
+    boolean start()
+            throws ConnectionException;
 
     /**
      * Start the client and let it connect to an online peer
@@ -28,8 +32,12 @@ public interface IClient {
      * @param bootstrapPort      The port of an online client to which to bootstrap to
      *
      * @return True, if starting and connecting succeeded, false otherwise
+     *
+     * @throws ConnectionException       If creating this node failed
+     * @throws ConnectionFailedException If connecting to the other peer failed
      */
-    boolean start(String bootstrapIpAddress, int bootstrapPort);
+    boolean start(String bootstrapIpAddress, Integer bootstrapPort)
+            throws ConnectionException, ConnectionFailedException;
 
     /**
      * Shuts down the client. Blocks until success or failure.
@@ -37,6 +45,13 @@ public interface IClient {
      * @return True, if the client could have been shut down, false otherwise
      */
     boolean shutdown();
+
+    /**
+     * Returns true if this node is connected
+     *
+     * @return True, if connected. False otherwise
+     */
+    boolean isConnected();
 
     /**
      * Sets the object data reply handler which should be invoked
@@ -97,13 +112,6 @@ public interface IClient {
      * @return The peer address
      */
     PeerAddress getPeerAddress();
-
-    /**
-     * Returns the peer DHT of the client
-     *
-     * @return The peer DHT
-     */
-    PeerDHT getPeerDht();
 
     /**
      * Sends the given object to the specified peer address.

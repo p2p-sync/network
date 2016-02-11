@@ -5,10 +5,13 @@ import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.rmatil.sync.network.api.IIdentifierManager;
 import org.rmatil.sync.network.api.IUser;
+import org.rmatil.sync.network.config.Config;
+import org.rmatil.sync.network.core.Connection;
 import org.rmatil.sync.network.core.IdentifierManager;
-import org.rmatil.sync.network.core.IdentifierMap;
 import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.IdentifierMap;
 import org.rmatil.sync.network.core.model.User;
+import org.rmatil.sync.network.test.core.base.BaseTest;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
@@ -67,18 +70,25 @@ public class IdentifierManagerTest {
         user2 = new User("Ruby von Rails", "123456", "dictionaryAttack", keyPair2.getPublic(), keyPair2.getPrivate(), new ArrayList<>());
 
         // bootstrap peer and client of user1
-        peer1 = PeerDhtUtils.initPeerDht(org.rmatil.sync.network.config.Config.IPv4, user1);
+        Connection con1 = new Connection(BaseTest.getTestConfig1(), null);
+        con1.open(user1.getKeyPair());
+        peer1 = con1.getPeerDHT();
+
         // client 2 of user1
-        peer2 = PeerDhtUtils.initPeerDht(org.rmatil.sync.network.config.Config.IPv4_2, user1);
+        Connection con2 = new Connection(BaseTest.getTestConfig2(), null);
+        con2.open(user1.getKeyPair());
+        con2.connect(con1.getPeerDHT().peerAddress().inetAddress().getHostAddress(), con1.getPeerDHT().peerAddress().tcpPort());
+        peer2 = con2.getPeerDHT();
 
         // client 1 of user2
-        peer3 = PeerDhtUtils.initPeerDht(org.rmatil.sync.network.config.Config.IPv4_3, user2);
+        Connection con3 = new Connection(BaseTest.getTestConfig3(), null);
+        con3.open(user2.getKeyPair());
+        con3.connect(con1.getPeerDHT().peerAddress().inetAddress().getHostAddress(), con1.getPeerDHT().peerAddress().tcpPort());
+        peer3 = con3.getPeerDHT();
 
         l1 = new ClientLocation(UUID.randomUUID(), peer1.peerAddress());
-
-        PeerDhtUtils.connectToLocation(peer2, l1);
         l2 = new ClientLocation(UUID.randomUUID(), peer2.peerAddress());
-        PeerDhtUtils.connectToLocation(peer3, l1);
+
 
         dhtStorageAdapter1 = new DhtStorageAdapter(peer1);
         dhtStorageAdapter2 = new DhtStorageAdapter(peer2);
@@ -87,20 +97,20 @@ public class IdentifierManagerTest {
         identifierManager = new IdentifierManager(
                 dhtStorageAdapter1,
                 user1.getUserName(),
-                org.rmatil.sync.network.config.Config.IPv4.getIdentifieContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4.getDomainKey()
+                Config.DEFAULT.getIdentifierContentKey(),
+                Config.DEFAULT.getDomainKey()
         );
         identifierManager2 = new IdentifierManager(
                 dhtStorageAdapter2,
                 user1.getUserName(),
-                org.rmatil.sync.network.config.Config.IPv4.getIdentifieContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4.getDomainKey()
+                Config.DEFAULT.getIdentifierContentKey(),
+                Config.DEFAULT.getDomainKey()
         );
         identifierManager3 = new IdentifierManager(
                 dhtStorageAdapter3,
                 user2.getUserName(),
-                org.rmatil.sync.network.config.Config.IPv4.getIdentifieContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4.getDomainKey()
+                Config.DEFAULT.getIdentifierContentKey(),
+                Config.DEFAULT.getDomainKey()
         );
 
     }

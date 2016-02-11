@@ -1,21 +1,11 @@
 package org.rmatil.sync.network.core;
 
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import net.tomp2p.connection.Bindings;
-import net.tomp2p.connection.ChannelClientConfiguration;
-import net.tomp2p.connection.ChannelServerConfiguration;
-import net.tomp2p.connection.StandardProtocolFamily;
-import net.tomp2p.dht.PeerBuilderDHT;
-import net.tomp2p.dht.PeerDHT;
-import net.tomp2p.futures.BaseFuture;
-import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDirect;
-import net.tomp2p.futures.FutureDiscover;
-import net.tomp2p.p2p.PeerBuilder;
-import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import org.rmatil.sync.network.api.*;
 import org.rmatil.sync.network.config.Config;
+import org.rmatil.sync.network.core.exception.ConnectionException;
+import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.ClientLocation;
@@ -24,40 +14,22 @@ import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Random;
 import java.util.UUID;
 
 
 public class Client implements IClient {
 
-    /**
-     * The maximum of concurrent connections we allow netty to use.
-     * Using Integer.MAX_VALUE will result in a MemoryOverFlowException.
-     *
-     * @see <a href="https://github.com/p2p-sync/network/issues/3">https://github.com/p2p-sync/network/issues/3</a>
-     */
-    public final static int MAX_CONCURRENT_CONNECTIONS = 10000;
-
     protected final static Logger logger = LoggerFactory.getLogger(Client.class);
 
-    protected final static Random rnd = new Random(42L);
+    protected ConnectionConfiguration config;
 
-    protected Config config;
+    protected Connection connection;
 
     protected IUser user;
 
     protected UUID clientDeviceId;
 
-    protected Bindings bindings;
-
     protected ObjectDataReplyHandler objectDataReplyHandler;
-
-    protected PeerDHT peerDht;
 
     protected IClientManager locationManager;
 
@@ -65,39 +37,52 @@ public class Client implements IClient {
 
     protected IIdentifierManager<String, UUID> identifierManager;
 
-    public Client(Config config, IUser user, UUID uuid) {
+    public Client(ConnectionConfiguration config, IUser user, UUID uuid) {
         this.config = config;
         this.user = user;
         this.clientDeviceId = uuid;
-        this.bindings = new Bindings();
     }
 
     @Override
-    public boolean start() {
-        boolean success = this.initPeerDht();
+    public boolean start()
+            throws ConnectionException {
+        return this.start(null, null);
+    }
 
-        if (! success) {
-            return false;
+
+    @Override
+    public boolean start(String bootstrapIpAddress, Integer bootstrapPort)
+            throws ConnectionException, ConnectionFailedException {
+
+        this.connection = new Connection(this.config, this.objectDataReplyHandler);
+        this.connection.open(this.user.getKeyPair());
+
+        if (null != bootstrapIpAddress && null != bootstrapPort) {
+            this.connection.connect(bootstrapIpAddress, bootstrapPort);
         }
 
-        logger.info("Starting client on IP address " + this.getPeerAddress().inetAddress().getHostName() + ":" + this.config.getPort() + ". Inserting a new client location");
+        logger.info("Successfully started client on address " + this.getPeerAddress().inetAddress().getHostAddress() + ":" + this.config.getPort());
 
-        IStorageAdapter dhtStorageAdapter = new DhtStorageAdapter(this.peerDht);
-        ClientLocation clientLocation = new ClientLocation(this.clientDeviceId, this.peerDht.peerAddress());
+        IStorageAdapter dhtStorageAdapter = new DhtStorageAdapter(this.connection.getPeerDHT(), this.config.getCacheTtl());
+        ClientLocation clientLocation = new ClientLocation(
+                this.clientDeviceId,
+                this.connection.getPeerDHT().peerAddress()
+        );
+
         this.locationManager = new ClientManager(
                 dhtStorageAdapter,
-                this.config.getLocationsContentKey(),
-                this.config.getPrivateKeyContentKey(),
-                this.config.getPublicKeyContentKey(),
-                this.config.getSaltContentKey(),
-                this.config.getDomainKey()
+                Config.DEFAULT.getLocationsContentKey(),
+                Config.DEFAULT.getPrivateKeyContentKey(),
+                Config.DEFAULT.getPublicKeyContentKey(),
+                Config.DEFAULT.getSaltContentKey(),
+                Config.DEFAULT.getDomainKey()
         );
 
         this.identifierManager = new IdentifierManager(
                 dhtStorageAdapter,
                 this.user.getUserName(),
-                this.config.getIdentifieContentKey(),
-                this.config.getDomainKey()
+                Config.DEFAULT.getIdentifierContentKey(),
+                Config.DEFAULT.getDomainKey()
         );
 
         this.userManager = new UserManager(
@@ -107,8 +92,7 @@ public class Client implements IClient {
 
         if (! this.userManager.login(this.user)) {
             logger.error("Failed to login the user " + this.user.getUserName());
-            this.peerDht.shutdown();
-
+            this.connection.close();
             return false;
         }
 
@@ -118,119 +102,44 @@ public class Client implements IClient {
     }
 
     @Override
-    public boolean start(String bootstrapIpAdress, int bootstrapPort) {
-        boolean success = this.initPeerDht();
+    public boolean shutdown() {
+        if (null == this.connection || this.connection.isClosed()) {
+            // reset the connection
+            this.connection = null;
 
-        if (! success) {
-            return false;
+            return true;
         }
 
-        InetAddress address;
+        logger.info("Shutting client down");
+
+        // remove the client location
+        this.userManager.logout(this.user);
+        // friendly announce the shutdown of this client
         try {
-            // try to find client with the given location
-            logger.debug("Trying to connect to " + bootstrapIpAdress + ":" + bootstrapPort + " ...");
-            address = InetAddress.getByName(bootstrapIpAdress);
-            FutureDiscover futureDiscover = this.peerDht
-                    .peer()
-                    .discover()
-                    .discoverTimeoutSec(20)
-                    .inetAddress(address)
-                    .ports(bootstrapPort)
-                    .start();
-            futureDiscover.awaitUninterruptibly(20000L);
-
-            if (futureDiscover.isFailed()) {
-                logger.error("Can not discover other client at address " + bootstrapIpAdress + ":" + bootstrapPort + ". Message: " + futureDiscover.failedReason());
-                return false;
-            }
-
-            logger.debug("Connected. Trying to bootstrap...");
-
-            // if found, try to bootstrap to it
-            FutureBootstrap futureBootstrap = this.peerDht
-                    .peer()
-                    .bootstrap()
-                    .inetAddress(address)
-                    .ports(bootstrapPort)
-                    .start();
-            futureBootstrap.awaitUninterruptibly(20000L);
-
-            if (futureBootstrap.isFailed()) {
-                logger.error("Can not bootstrap to address " + bootstrapIpAdress + ". Message: " + futureBootstrap.failedReason());
-                return false;
-            }
-
-            logger.info("Bootstrapping to client " + bootstrapIpAdress + ":" + bootstrapPort + " succeeded. My own address is now " + this.peerDht.peerAddress().inetAddress().getHostAddress() + ":" + this.peerDht.peerAddress().tcpPort());
-
-            ClientLocation clientLocation = new ClientLocation(this.clientDeviceId, this.peerDht.peerAddress());
-            IStorageAdapter dhtStorageAdapter = new DhtStorageAdapter(this.peerDht);
-            this.locationManager = new ClientManager(
-                    dhtStorageAdapter,
-                    this.config.getLocationsContentKey(),
-                    this.config.getPrivateKeyContentKey(),
-                    this.config.getPublicKeyContentKey(),
-                    this.config.getSaltContentKey(),
-                    this.config.getDomainKey()
-            );
-
-            this.identifierManager = new IdentifierManager(
-                    dhtStorageAdapter,
-                    this.user.getUserName(),
-                    this.config.getIdentifieContentKey(),
-                    this.config.getDomainKey()
-            );
-
-            this.userManager = new UserManager(
-                    this.locationManager,
-                    clientLocation
-            );
-
-
-            if (! this.userManager.login(this.user)) {
-                logger.error("Failed to login the user " + this.user.getUserName());
-                this.peerDht.shutdown();
-
-                return false;
-            }
-
-        } catch (UnknownHostException e) {
-            logger.error("Can not start client. Message: " + e.getMessage());
+            this.connection.close();
+        } catch (ConnectionException e) {
+            logger.error("Failed to shut down this node: " + e.getMessage());
             return false;
         }
+
+        // reset the connection
+        this.connection = null;
 
         return true;
     }
 
     @Override
-    public boolean shutdown() {
-        logger.info("Shutting client down...");
-
-        if (null == this.peerDht || this.peerDht.peer().isShutdown()) {
-            return true;
-        }
-
-        this.userManager.logout(this.user);
-
-        BaseFuture announceFuture = this.peerDht.peer()
-                .announceShutdown()
-                .start()
-                .awaitUninterruptibly();
-
-        if (announceFuture.isFailed()) {
-            logger.warn("Shutdown announce did not succeed");
-        }
-
-        BaseFuture future = this.peerDht.shutdown().awaitUninterruptibly();
-        if (future.isSuccess()) {
-            return true;
-        }
-
-        logger.error("Can not shut down client. Message: " + future.failedReason());
-        return false;
+    public boolean isConnected() {
+        return null != this.connection && ! this.connection.isClosed();
     }
 
     @Override
     public void setObjectDataReplyHandler(ObjectDataReplyHandler objectDataReplyHandler) {
+        if (null != this.connection) {
+            throw new IllegalStateException("Can not set the object data reply handler after the connection has been set up");
+        }
+
+        // we are still able to set the object data reply
         this.objectDataReplyHandler = objectDataReplyHandler;
     }
 
@@ -266,77 +175,7 @@ public class Client implements IClient {
 
     @Override
     public PeerAddress getPeerAddress() {
-        return this.peerDht.peerAddress();
-    }
-
-    @Override
-    public PeerDHT getPeerDht() {
-        return this.peerDht;
-    }
-
-    protected boolean initPeerDht() {
-        logger.debug("Setting up interface bindings");
-
-        try {
-            if (this.config.useIpV6()) {
-                this.bindings.addProtocol(StandardProtocolFamily.INET6);
-                this.bindings.addAddress(Inet4Address.getLocalHost());
-            } else {
-                this.bindings.addProtocol(StandardProtocolFamily.INET);
-                this.bindings.addAddress(Inet6Address.getLocalHost());
-            }
-        } catch (UnknownHostException e) {
-            logger.error("Can not add interface bindings to client. Message: " + e.getMessage());
-            return false;
-        }
-
-        try {
-            // limit of 10 concurrent connections
-            ChannelServerConfiguration serverConfiguration = PeerBuilder.createDefaultChannelServerConfiguration();
-            serverConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(MAX_CONCURRENT_CONNECTIONS)));
-
-            ChannelClientConfiguration clientConfiguration = PeerBuilder.createDefaultChannelClientConfiguration();
-            clientConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(MAX_CONCURRENT_CONNECTIONS)));
-
-            this.peerDht = new PeerBuilderDHT(
-                    new PeerBuilder(new Number160(rnd))
-                            .channelServerConfiguration(serverConfiguration)
-                            .channelClientConfiguration(clientConfiguration)
-                            .keyPair(this.user.getKeyPair())
-                            .ports(this.config.getPort())
-                            .bindings(this.bindings)
-                            .start()
-            ).start();
-
-            // TODO: https://github.com/p2p-sync/network/issues/2
-            // TODO: 1. join network without public key
-            // TODO: 2. fetch public key, private key, salt
-            // TODO: 3. generate secret key for user with salt and pw
-            // TODO: 4. add secret key to user
-            // TODO: 5. decrypt private key with secret key from user
-            // TODO: 6. set public-private keypair in the DHT
-
-
-            if (null != this.objectDataReplyHandler) {
-                logger.info("Setting object data reply...");
-                this.peerDht.peer().objectDataReply(this.objectDataReplyHandler);
-            }
-
-        } catch (IOException e) {
-            logger.error("Can not start peer dht. Message: " + e.getMessage());
-            this.peerDht.shutdown();
-
-            return false;
-        }
-
-        this.peerDht.storageLayer().protection(
-                this.config.getProtectionDomainEnable(),
-                this.config.getProtectionDomainMode(),
-                this.config.getProtectionEntryEnable(),
-                this.config.getProtectionEntryMode()
-        );
-
-        return true;
+        return this.connection.getPeerDHT().peerAddress();
     }
 
     @Override
@@ -344,6 +183,6 @@ public class Client implements IClient {
             throws ObjectSendFailedException {
         logger.trace("Sending object to peer with address " + receiverAddress.inetAddress().getHostAddress() + ":" + receiverAddress.tcpPort());
         // TODO: sign & encrypt files
-        return this.peerDht.peer().sendDirect(receiverAddress).object(dataToSend).start();
+        return this.connection.getPeerDHT().peer().sendDirect(receiverAddress).object(dataToSend).start();
     }
 }

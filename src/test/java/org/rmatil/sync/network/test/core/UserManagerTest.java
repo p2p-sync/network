@@ -6,10 +6,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.rmatil.sync.network.api.IClientManager;
 import org.rmatil.sync.network.api.IUser;
+import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.ClientManager;
+import org.rmatil.sync.network.core.Connection;
 import org.rmatil.sync.network.core.UserManager;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.network.core.model.User;
+import org.rmatil.sync.network.test.core.base.BaseTest;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
@@ -65,18 +68,24 @@ public class UserManagerTest {
         user2 = new User("Ruby von Rails", "123456", "dictionaryAttack", keyPair2.getPublic(), keyPair2.getPrivate(), new ArrayList<>());
 
         // bootstrap peer and client of user1
-        peer1 = PeerDhtUtils.initPeerDht(org.rmatil.sync.network.config.Config.IPv4, user1);
+        Connection con1 = new Connection(BaseTest.getTestConfig1(), null);
+        con1.open(user1.getKeyPair());
+        peer1 = con1.getPeerDHT();
+
         // client 2 of user1
-        peer2 = PeerDhtUtils.initPeerDht(org.rmatil.sync.network.config.Config.IPv4_2, user1);
+        Connection con2 = new Connection(BaseTest.getTestConfig2(), null);
+        con2.open(user1.getKeyPair());
+        con2.connect(con1.getPeerDHT().peerAddress().inetAddress().getHostAddress(), con1.getPeerDHT().peerAddress().tcpPort());
+        peer2 = con2.getPeerDHT();
 
         // client 1 of user2
-        peer3 = PeerDhtUtils.initPeerDht(org.rmatil.sync.network.config.Config.IPv4_3, user2);
+        Connection con3 = new Connection(BaseTest.getTestConfig3(), null);
+        con3.open(user2.getKeyPair());
+        con3.connect(con1.getPeerDHT().peerAddress().inetAddress().getHostAddress(), con1.getPeerDHT().peerAddress().tcpPort());
+        peer3 = con3.getPeerDHT();
 
         l1 = new ClientLocation(UUID.randomUUID(), peer1.peerAddress());
-
-        PeerDhtUtils.connectToLocation(peer2, l1);
         l2 = new ClientLocation(UUID.randomUUID(), peer2.peerAddress());
-        PeerDhtUtils.connectToLocation(peer3, l1);
         l3 = new ClientLocation(UUID.randomUUID(), peer3.peerAddress());
 
         dhtStorageAdapter1 = new DhtStorageAdapter(peer1);
@@ -85,27 +94,28 @@ public class UserManagerTest {
 
         clientManager1 = new ClientManager(
                 dhtStorageAdapter1,
-                org.rmatil.sync.network.config.Config.IPv4.getLocationsContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4.getPrivateKeyContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4.getPublicKeyContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4.getSaltContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4.getDomainKey()
+                Config.DEFAULT.getLocationsContentKey(),
+                Config.DEFAULT.getPrivateKeyContentKey(),
+                Config.DEFAULT.getPublicKeyContentKey(),
+                Config.DEFAULT.getSaltContentKey(),
+                Config.DEFAULT.getDomainKey()
         );
+
         clientManager2 = new ClientManager(
                 dhtStorageAdapter2,
-                org.rmatil.sync.network.config.Config.IPv4_2.getLocationsContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4_2.getPrivateKeyContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4_2.getPublicKeyContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4_2.getSaltContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4.getDomainKey()
+                Config.DEFAULT.getLocationsContentKey(),
+                Config.DEFAULT.getPrivateKeyContentKey(),
+                Config.DEFAULT.getPublicKeyContentKey(),
+                Config.DEFAULT.getSaltContentKey(),
+                Config.DEFAULT.getDomainKey()
         );
         clientManager3 = new ClientManager(
                 dhtStorageAdapter3,
-                org.rmatil.sync.network.config.Config.IPv4_3.getLocationsContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4_3.getPrivateKeyContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4_3.getPublicKeyContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4_3.getSaltContentKey(),
-                org.rmatil.sync.network.config.Config.IPv4.getDomainKey()
+                Config.DEFAULT.getLocationsContentKey(),
+                Config.DEFAULT.getPrivateKeyContentKey(),
+                Config.DEFAULT.getPublicKeyContentKey(),
+                Config.DEFAULT.getSaltContentKey(),
+                Config.DEFAULT.getDomainKey()
         );
 
         userManager1 = new UserManager(
@@ -126,12 +136,15 @@ public class UserManagerTest {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown()
+            throws InterruptedException {
         // restart on each test since the public key is not removed
         // on logout
         peer1.shutdown();
         peer2.shutdown();
         peer3.shutdown();
+
+        Thread.sleep(1000L);
     }
 
     @Test

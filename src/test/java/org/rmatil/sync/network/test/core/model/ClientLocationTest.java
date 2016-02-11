@@ -5,10 +5,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.rmatil.sync.network.api.IClient;
 import org.rmatil.sync.network.api.IUser;
-import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.Client;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.network.core.model.User;
+import org.rmatil.sync.network.test.core.base.BaseTest;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -16,11 +16,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import static org.hamcrest.CoreMatchers.*;
 
 
 public class ClientLocationTest {
@@ -38,8 +38,8 @@ public class ClientLocationTest {
         KeyPair keyPair = gen.genKeyPair();
 
         IUser user = new User("Weir Doe", "WillBorrow", "Bread", keyPair.getPublic(), keyPair.getPrivate(), new ArrayList<>());
-        clientIpV4 = new Client(Config.IPv4, user, clientId1);
-        clientIpV6 = new Client(Config.IPv6, user, clientId2);
+        clientIpV4 = new Client(BaseTest.getTestConfig1(), user, clientId1);
+        clientIpV6 = new Client(BaseTest.getTestConfig2(), user, clientId2);
 
         clientIpV4.start();
         clientIpV6.start();

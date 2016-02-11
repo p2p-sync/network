@@ -6,12 +6,10 @@ import org.junit.Test;
 import org.rmatil.sync.network.api.IClient;
 import org.rmatil.sync.network.api.IClientManager;
 import org.rmatil.sync.network.api.IUser;
-import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.Client;
-import org.rmatil.sync.network.core.ClientManager;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.User;
-import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
+import org.rmatil.sync.network.test.core.base.BaseTest;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -24,7 +22,7 @@ import java.util.concurrent.Executors;
 
 import static org.junit.Assert.*;
 
-public class NetworkHandlerTest {
+public class NetworkHandlerTest extends BaseTest {
 
     protected static IUser user;
 
@@ -52,13 +50,13 @@ public class NetworkHandlerTest {
         );
 
         client1 = new Client(
-                Config.IPv4,
+                BaseTest.getTestConfig1(),
                 user,
                 clientDeviceId1
         );
 
         client2 = new Client(
-                Config.IPv4_2,
+                BaseTest.getTestConfig2(),
                 user,
                 clientDeviceId2
         );
@@ -75,31 +73,8 @@ public class NetworkHandlerTest {
         client1.start();
         client2.start(client1.getPeerAddress().inetAddress().getHostAddress(), client1.getPeerAddress().tcpPort());
 
-        DhtStorageAdapter dhtStorageAdapter1 = new DhtStorageAdapter(
-                client1.getPeerDht()
-        );
-
-        clientManager1 = new ClientManager(
-                dhtStorageAdapter1,
-                Config.IPv4.getLocationsContentKey(),
-                Config.IPv4.getPrivateKeyContentKey(),
-                Config.IPv4.getPublicKeyContentKey(),
-                Config.IPv4.getSaltContentKey(),
-                Config.IPv4.getDomainKey()
-        );
-
-        DhtStorageAdapter dhtStorageAdapter2 = new DhtStorageAdapter(
-                client2.getPeerDht()
-        );
-
-        clientManager2 = new ClientManager(
-                dhtStorageAdapter2,
-                Config.IPv4.getLocationsContentKey(),
-                Config.IPv4.getPrivateKeyContentKey(),
-                Config.IPv4.getPublicKeyContentKey(),
-                Config.IPv4.getSaltContentKey(),
-                Config.IPv4.getDomainKey()
-        );
+        clientManager1 = client1.getClientManager();
+        clientManager2 = client2.getClientManager();
     }
 
     @AfterClass
