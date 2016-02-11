@@ -10,8 +10,10 @@ import net.tomp2p.dht.PeerDHT;
 import net.tomp2p.dht.StorageLayer;
 import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.FutureBootstrap;
+import net.tomp2p.futures.FutureDirect;
 import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.p2p.PeerBuilder;
+import net.tomp2p.p2p.builder.PingBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import org.rmatil.sync.network.core.exception.ConnectionException;
@@ -276,6 +278,24 @@ public class Connection {
         }
 
         logger.debug("Bootstrap succeeded");
+    }
+
+    /**
+     * Send the given data to the specified receiver
+     *
+     * @param receiverAddress The address to which to send the data
+     * @param dataToSend      The data to send
+     *
+     * @return The future
+     */
+    public FutureDirect sendDirect(PeerAddress receiverAddress, Object dataToSend) {
+        // TODO: sign & encrypt files
+
+        return this.peerDHT
+                .peer()
+                .sendDirect(receiverAddress)
+                .object(dataToSend)
+                .start();
     }
 
     /**

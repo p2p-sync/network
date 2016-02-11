@@ -182,7 +182,7 @@ public class Client implements IClient {
     public FutureDirect sendDirect(PeerAddress receiverAddress, Object dataToSend)
             throws ObjectSendFailedException {
         logger.trace("Sending object to peer with address " + receiverAddress.inetAddress().getHostAddress() + ":" + receiverAddress.tcpPort());
-        // TODO: sign & encrypt files
-        return this.connection.getPeerDHT().peer().sendDirect(receiverAddress).object(dataToSend).start();
+
+        return this.connection.sendDirect(receiverAddress, dataToSend);
     }
 }
