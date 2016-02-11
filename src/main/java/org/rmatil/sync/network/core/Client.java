@@ -96,7 +96,7 @@ public class Client implements IClient {
             return false;
         }
 
-        logger.debug("Bootstrap peer succeeded to bootstrap at " + this.getPeerAddress());
+        logger.debug("Bootstrap peer succeeded to bootstrap at " + this.getPeerAddress().inetAddress().getHostAddress() + ":" + this.getPeerAddress().tcpPort());
 
         return true;
     }
