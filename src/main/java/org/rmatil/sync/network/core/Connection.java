@@ -27,6 +27,10 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
 
+/**
+ * Use this class to open resp. close connections between
+ * peers.
+ */
 public class Connection {
 
     private static final Logger logger = LoggerFactory.getLogger(Connection.class);
@@ -104,11 +108,23 @@ public class Connection {
         return port;
     }
 
+    /**
+     * @param config                 The connection configuration
+     * @param objectDataReplyHandler The object data reply handler which is attached to the peer when opening the connection
+     */
     public Connection(ConnectionConfiguration config, ObjectDataReplyHandler objectDataReplyHandler) {
         this.config = config;
         this.objectDataReplyHandler = objectDataReplyHandler;
     }
 
+    /**
+     * Open a new connection, i.e. initialising a new node using
+     * the given keypair for domain protected values.
+     *
+     * @param keyPair The keypair to use for domain protected values. Note that this must be the same for all clients of the same user
+     *
+     * @throws ConnectionException If no free port could have been allocated to start this node or another error occurred during start up
+     */
     public void open(KeyPair keyPair)
             throws ConnectionException {
         int port = this.config.getPort();
@@ -179,8 +195,21 @@ public class Connection {
 
     }
 
+    /**
+     * Connect this peer to the node residing at the given bootstrap location.
+     *
+     * @param bootstrapIpAddress The ip address to use to bootstrap to
+     * @param bootstrapPort      The port to bootstrap to
+     *
+     * @throws ConnectionFailedException If bootstrapping to the other node failed
+     * @throws IllegalStateException     If the connection is not yet opened
+     */
     public void connect(String bootstrapIpAddress, int bootstrapPort)
-            throws ConnectionFailedException {
+            throws ConnectionFailedException, IllegalStateException {
+        if (null == this.peerDHT) {
+            throw new IllegalStateException("Open the connection first");
+        }
+
         logger.info("Trying to connect to " +
                 bootstrapIpAddress +
                 ":" +
@@ -249,6 +278,12 @@ public class Connection {
         logger.debug("Bootstrap succeeded");
     }
 
+    /**
+     * Close the connection of this peer in means of a friendly (i.e. announced)
+     * shutdown.
+     *
+     * @throws ConnectionException If waiting for shutdown timed out
+     */
     public void close()
             throws ConnectionException {
         if (null == this.peerDHT) {
@@ -280,12 +315,21 @@ public class Connection {
         logger.trace("Shutdown of peer succeeded");
     }
 
+    /**
+     * Returns true, if this connection is closed, i.e. no peer is started.
+     *
+     * @return True, if closed, false otherwise
+     */
     public boolean isClosed() {
         // returns true, if no peer dht is specified or already shutdown
         return (null != this.peerDHT && this.peerDHT.peer().isShutdown()) || null == this.peerDHT;
     }
 
-
+    /**
+     * Returns the peer DHT backed by this connection
+     *
+     * @return The peer dht
+     */
     public PeerDHT getPeerDHT() {
         return peerDHT;
     }
