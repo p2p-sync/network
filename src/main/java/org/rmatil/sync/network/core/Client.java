@@ -14,17 +14,13 @@ import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.p2p.PeerBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
-import org.rmatil.sync.network.api.IClient;
-import org.rmatil.sync.network.api.IClientManager;
-import org.rmatil.sync.network.api.IIdentifierManager;
-import org.rmatil.sync.network.api.IUser;
+import org.rmatil.sync.network.api.*;
 import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
-import org.rmatil.sync.persistence.exceptions.InputOutputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +61,8 @@ public class Client implements IClient {
 
     protected IClientManager locationManager;
 
+    protected IUserManager userManager;
+
     protected IIdentifierManager<String, UUID> identifierManager;
 
     public Client(Config config, IUser user, UUID uuid) {
@@ -90,7 +88,7 @@ public class Client implements IClient {
                 dhtStorageAdapter,
                 this.config.getLocationsContentKey(),
                 this.config.getPrivateKeyContentKey(),
-                this.config.getLocationsContentKey(),
+                this.config.getPublicKeyContentKey(),
                 this.config.getSaltContentKey(),
                 this.config.getDomainKey()
         );
@@ -102,10 +100,13 @@ public class Client implements IClient {
                 this.config.getDomainKey()
         );
 
-        try {
-            this.locationManager.addClientLocation(this.user, clientLocation);
-        } catch (InputOutputException e) {
-            logger.error("Can not store my client location in the location manager. Message: " + e.getMessage());
+        this.userManager = new UserManager(
+                this.locationManager,
+                clientLocation
+        );
+
+        if (! this.userManager.login(this.user)) {
+            logger.error("Failed to login the user " + this.user.getUserName());
             this.peerDht.shutdown();
 
             return false;
@@ -132,10 +133,11 @@ public class Client implements IClient {
             FutureDiscover futureDiscover = this.peerDht
                     .peer()
                     .discover()
+                    .discoverTimeoutSec(20)
                     .inetAddress(address)
                     .ports(bootstrapPort)
                     .start();
-            futureDiscover.awaitUninterruptibly();
+            futureDiscover.awaitUninterruptibly(20000L);
 
             if (futureDiscover.isFailed()) {
                 logger.error("Can not discover other client at address " + bootstrapIpAdress + ":" + bootstrapPort + ". Message: " + futureDiscover.failedReason());
@@ -151,7 +153,7 @@ public class Client implements IClient {
                     .inetAddress(address)
                     .ports(bootstrapPort)
                     .start();
-            futureBootstrap.awaitUninterruptibly();
+            futureBootstrap.awaitUninterruptibly(20000L);
 
             if (futureBootstrap.isFailed()) {
                 logger.error("Can not bootstrap to address " + bootstrapIpAdress + ". Message: " + futureBootstrap.failedReason());
@@ -166,7 +168,7 @@ public class Client implements IClient {
                     dhtStorageAdapter,
                     this.config.getLocationsContentKey(),
                     this.config.getPrivateKeyContentKey(),
-                    this.config.getLocationsContentKey(),
+                    this.config.getPublicKeyContentKey(),
                     this.config.getSaltContentKey(),
                     this.config.getDomainKey()
             );
@@ -178,10 +180,14 @@ public class Client implements IClient {
                     this.config.getDomainKey()
             );
 
-            try {
-                this.locationManager.addClientLocation(this.user, clientLocation);
-            } catch (InputOutputException e) {
-                logger.error("Can not store my client location in the location manager. Therefore, shutting down. Message: " + e.getMessage());
+            this.userManager = new UserManager(
+                    this.locationManager,
+                    clientLocation
+            );
+
+
+            if (! this.userManager.login(this.user)) {
+                logger.error("Failed to login the user " + this.user.getUserName());
                 this.peerDht.shutdown();
 
                 return false;
@@ -199,19 +205,27 @@ public class Client implements IClient {
     public boolean shutdown() {
         logger.info("Shutting client down...");
 
-        if (null == this.peerDht) {
+        if (null == this.peerDht || this.peerDht.peer().isShutdown()) {
             return true;
         }
 
-        BaseFuture future = this.peerDht.shutdown();
-        future.awaitUninterruptibly();
+        this.userManager.logout(this.user);
 
+        BaseFuture announceFuture = this.peerDht.peer()
+                .announceShutdown()
+                .start()
+                .awaitUninterruptibly();
+
+        if (announceFuture.isFailed()) {
+            logger.warn("Shutdown announce did not succeed");
+        }
+
+        BaseFuture future = this.peerDht.shutdown().awaitUninterruptibly();
         if (future.isSuccess()) {
             return true;
         }
 
         logger.error("Can not shut down client. Message: " + future.failedReason());
-
         return false;
     }
 
@@ -238,6 +252,11 @@ public class Client implements IClient {
     @Override
     public IClientManager getClientManager() {
         return this.locationManager;
+    }
+
+    @Override
+    public IUserManager getUserManager() {
+        return userManager;
     }
 
     @Override

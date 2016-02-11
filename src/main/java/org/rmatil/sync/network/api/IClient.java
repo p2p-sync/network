@@ -76,6 +76,14 @@ public interface IClient {
     IClientManager getClientManager();
 
     /**
+     * Returns the user manager used.
+     * <p color="red">This is only initialised after starting the client</p>
+     *
+     * @return The user manager
+     */
+    IUserManager getUserManager();
+
+    /**
      * Returns the identifier manager used.
      * <p color="red">This is only initialised after starting the client</p>
      *

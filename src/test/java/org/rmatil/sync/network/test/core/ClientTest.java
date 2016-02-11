@@ -80,12 +80,14 @@ public class ClientTest {
     public void testGetClientManager() {
         assertNull("ClientManager should be null before starting", clientIpV6.getClientManager());
         assertNull("IdentifierManager should be null before starting", clientIpV6.getIdentifierManager());
+        assertNull("UserManager should be null before starting", clientIpV6.getUserManager());
 
         boolean succeededV6 = clientIpV6.start();
 
         assertTrue("Client should be started", succeededV6);
         assertNotNull("ClientManager should be initialised after starting", clientIpV6.getClientManager());
         assertNotNull("IdentifierManager should be initialised after starting", clientIpV6.getIdentifierManager());
+        assertNotNull("UserManager should be initialised after starting", clientIpV6.getUserManager());
     }
 
     @Test
