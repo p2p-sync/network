@@ -95,6 +95,15 @@ public class ClientLocation implements Serializable {
     }
 
     @Override
+    public String toString() {
+        if (null != this.peerAddress) {
+            return this.getIpAddress() + ":" + this.getPort();
+        }
+
+        return "- : -";
+    }
+
+    @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 31). // two randomly chosen prime numbers
                 // if deriving: appendSuper(super.hashCode()).
