@@ -17,9 +17,9 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 
 
-public class Client implements IClient {
+public class Node implements INode {
 
-    protected final static Logger logger = LoggerFactory.getLogger(Client.class);
+    protected final static Logger logger = LoggerFactory.getLogger(Node.class);
 
     protected ConnectionConfiguration config;
 
@@ -31,13 +31,13 @@ public class Client implements IClient {
 
     protected ObjectDataReplyHandler objectDataReplyHandler;
 
-    protected IClientManager locationManager;
+    protected INodeManager locationManager;
 
     protected IUserManager userManager;
 
     protected IIdentifierManager<String, UUID> identifierManager;
 
-    public Client(ConnectionConfiguration config, IUser user, UUID uuid) {
+    public Node(ConnectionConfiguration config, IUser user, UUID uuid) {
         this.config = config;
         this.user = user;
         this.clientDeviceId = uuid;
@@ -69,7 +69,7 @@ public class Client implements IClient {
                 this.connection.getPeerDHT().peerAddress()
         );
 
-        this.locationManager = new ClientManager(
+        this.locationManager = new NodeManager(
                 dhtStorageAdapter,
                 Config.DEFAULT.getLocationsContentKey(),
                 Config.DEFAULT.getPrivateKeyContentKey(),
@@ -159,7 +159,7 @@ public class Client implements IClient {
     }
 
     @Override
-    public IClientManager getClientManager() {
+    public INodeManager getClientManager() {
         return this.locationManager;
     }
 

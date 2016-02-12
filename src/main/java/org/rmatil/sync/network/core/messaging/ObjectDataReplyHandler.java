@@ -3,7 +3,6 @@ package org.rmatil.sync.network.core.messaging;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import org.rmatil.sync.network.api.*;
-import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +35,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     /**
      * The client to use for sending back responses
      */
-    protected IClient client;
+    protected INode client;
 
     /**
      * A flag indicating that a master peer has been elected
@@ -49,7 +48,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
      *                                 the corresponding objectDataReply should be applied to if the request matches the class
      * @param requestCallbackHandlers  A map of all registered requestCallbackHandlers. Specify as key the class of the request for which the corresponding request callback handler should be invoked
      */
-    public ObjectDataReplyHandler(IClient client, Map<UUID, IResponseCallback> responseCallbackHandlers, Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> requestCallbackHandlers) {
+    public ObjectDataReplyHandler(INode client, Map<UUID, IResponseCallback> responseCallbackHandlers, Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> requestCallbackHandlers) {
         this.client = client;
         this.responseCallbackHandlers = responseCallbackHandlers;
         this.requestCallbackHandlers = requestCallbackHandlers;
@@ -58,7 +57,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     /**
      * @param client The client used for sending back the responses of a request
      */
-    public ObjectDataReplyHandler(IClient client) {
+    public ObjectDataReplyHandler(INode client) {
         this.client = client;
         this.responseCallbackHandlers = new HashMap<>();
         this.requestCallbackHandlers = new HashMap<>();

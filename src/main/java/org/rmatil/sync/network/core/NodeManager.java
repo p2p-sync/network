@@ -1,6 +1,6 @@
 package org.rmatil.sync.network.core;
 
-import org.rmatil.sync.network.api.IClientManager;
+import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.network.core.security.encryption.symmetric.ISymmetricEncryption;
@@ -25,9 +25,9 @@ import java.util.List;
  * Note, that to add or remove a client location to an user, write permission is
  * ensured by using the public key of the given user.
  */
-public class ClientManager implements IClientManager {
+public class NodeManager implements INodeManager {
 
-    protected final static Logger logger = LoggerFactory.getLogger(ClientManager.class);
+    protected final static Logger logger = LoggerFactory.getLogger(NodeManager.class);
 
     /**
      * A storage adapter giving access to persisted locations
@@ -62,7 +62,7 @@ public class ClientManager implements IClientManager {
     protected ISymmetricEncryption aesEncryption;
 
 
-    public ClientManager(IStorageAdapter storageAdapter, String locationContentKey, String privateKeyContentKey, String publicKeyContentKey, String saltContentKey, String domainKey) {
+    public NodeManager(IStorageAdapter storageAdapter, String locationContentKey, String privateKeyContentKey, String publicKeyContentKey, String saltContentKey, String domainKey) {
         this.storageAdapter = storageAdapter;
         this.locationContentKey = locationContentKey;
         this.privateKeyContentKey = privateKeyContentKey;

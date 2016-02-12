@@ -3,9 +3,9 @@ package org.rmatil.sync.network.test.core.model;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.rmatil.sync.network.api.IClient;
+import org.rmatil.sync.network.api.INode;
 import org.rmatil.sync.network.api.IUser;
-import org.rmatil.sync.network.core.Client;
+import org.rmatil.sync.network.core.Node;
 import org.rmatil.sync.network.core.model.ClientLocation;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
@@ -25,8 +25,8 @@ import static org.junit.Assert.assertTrue;
 
 public class ClientLocationTest {
 
-    protected static IClient clientIpV4;
-    protected static IClient clientIpV6;
+    protected static INode clientIpV4;
+    protected static INode clientIpV6;
 
     protected static UUID clientId1 = UUID.randomUUID();
     protected static UUID clientId2 = UUID.randomUUID();
@@ -38,8 +38,8 @@ public class ClientLocationTest {
         KeyPair keyPair = gen.genKeyPair();
 
         IUser user = new User("Weir Doe", "WillBorrow", "Bread", keyPair.getPublic(), keyPair.getPrivate(), new ArrayList<>());
-        clientIpV4 = new Client(BaseTest.getTestConfig1(), user, clientId1);
-        clientIpV6 = new Client(BaseTest.getTestConfig2(), user, clientId2);
+        clientIpV4 = new Node(BaseTest.getTestConfig1(), user, clientId1);
+        clientIpV6 = new Node(BaseTest.getTestConfig2(), user, clientId2);
 
         clientIpV4.start();
         clientIpV6.start();

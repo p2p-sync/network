@@ -12,7 +12,7 @@ import java.util.List;
  * Provides access to the locations of
  * peers using their public key as peerId
  */
-public interface IClientManager {
+public interface INodeManager {
 
     /**
      * Returns the storage adapter implementation of this manager

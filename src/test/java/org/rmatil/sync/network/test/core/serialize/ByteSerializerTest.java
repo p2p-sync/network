@@ -44,7 +44,7 @@ public class ByteSerializerTest {
 
         List<ClientLocation> clientLocations = (List<ClientLocation>) ByteSerializer.fromBytes(bytes);
 
-        assertThat("Client locations do not contain location1", clientLocations, hasItems(l1, l2));
+        assertThat("Node locations do not contain location1", clientLocations, hasItems(l1, l2));
     }
 
 }

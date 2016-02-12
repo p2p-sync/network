@@ -13,7 +13,7 @@ public interface IRequestCallback extends Runnable {
      *
      * @param client The client to use
      */
-    void setClient(IClient client);
+    void setClient(INode client);
 
     /**
      * Set the request to handle

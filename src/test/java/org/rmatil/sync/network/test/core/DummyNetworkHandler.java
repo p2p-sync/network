@@ -1,7 +1,7 @@
 package org.rmatil.sync.network.test.core;
 
-import org.rmatil.sync.network.api.IClient;
-import org.rmatil.sync.network.api.IClientManager;
+import org.rmatil.sync.network.api.INode;
+import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IRequest;
 import org.rmatil.sync.network.api.IResponse;
 import org.rmatil.sync.network.core.ANetworkHandler;
@@ -16,9 +16,9 @@ public class DummyNetworkHandler extends ANetworkHandler<Boolean> {
 
     private final static Logger logger = LoggerFactory.getLogger(DummyNetworkHandler.class);
 
-    protected IClientManager clientManager;
+    protected INodeManager clientManager;
 
-    public DummyNetworkHandler(IClient client, IClientManager clientManager) {
+    public DummyNetworkHandler(INode client, INodeManager clientManager) {
         super(client);
         this.clientManager = clientManager;
     }

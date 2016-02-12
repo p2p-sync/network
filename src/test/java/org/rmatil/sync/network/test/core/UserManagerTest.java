@@ -4,10 +4,10 @@ import net.tomp2p.dht.PeerDHT;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.rmatil.sync.network.api.IClientManager;
+import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.config.Config;
-import org.rmatil.sync.network.core.ClientManager;
+import org.rmatil.sync.network.core.NodeManager;
 import org.rmatil.sync.network.core.Connection;
 import org.rmatil.sync.network.core.UserManager;
 import org.rmatil.sync.network.core.model.ClientLocation;
@@ -39,9 +39,9 @@ public class UserManagerTest {
     protected static KeyPair keyPair1;
     protected static KeyPair keyPair2;
 
-    protected static IClientManager clientManager1;
-    protected static IClientManager clientManager2;
-    protected static IClientManager clientManager3;
+    protected static INodeManager clientManager1;
+    protected static INodeManager clientManager2;
+    protected static INodeManager clientManager3;
 
     protected static IUser          user1;
     protected static IUser          user2;
@@ -92,7 +92,7 @@ public class UserManagerTest {
         dhtStorageAdapter2 = new DhtStorageAdapter(peer2);
         dhtStorageAdapter3 = new DhtStorageAdapter(peer3);
 
-        clientManager1 = new ClientManager(
+        clientManager1 = new NodeManager(
                 dhtStorageAdapter1,
                 Config.DEFAULT.getLocationsContentKey(),
                 Config.DEFAULT.getPrivateKeyContentKey(),
@@ -101,7 +101,7 @@ public class UserManagerTest {
                 Config.DEFAULT.getDomainKey()
         );
 
-        clientManager2 = new ClientManager(
+        clientManager2 = new NodeManager(
                 dhtStorageAdapter2,
                 Config.DEFAULT.getLocationsContentKey(),
                 Config.DEFAULT.getPrivateKeyContentKey(),
@@ -109,7 +109,7 @@ public class UserManagerTest {
                 Config.DEFAULT.getSaltContentKey(),
                 Config.DEFAULT.getDomainKey()
         );
-        clientManager3 = new ClientManager(
+        clientManager3 = new NodeManager(
                 dhtStorageAdapter3,
                 Config.DEFAULT.getLocationsContentKey(),
                 Config.DEFAULT.getPrivateKeyContentKey(),

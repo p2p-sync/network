@@ -6,7 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.rmatil.sync.network.api.IRequest;
 import org.rmatil.sync.network.api.IUser;
-import org.rmatil.sync.network.core.Client;
+import org.rmatil.sync.network.core.Node;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.ClientDevice;
 import org.rmatil.sync.network.core.model.ClientLocation;
@@ -24,15 +24,15 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
 
-public class ClientTest extends BaseTest {
+public class NodeTest extends BaseTest {
 
     protected static UUID c1Id = UUID.randomUUID();
     protected static UUID c2Id = UUID.randomUUID();
     protected static UUID c3Id = UUID.randomUUID();
 
-    protected static Client clientIpV6;
-    protected static Client clientIpV4_1;
-    protected static Client clientIpV4_2;
+    protected static Node nodeIpV6;
+    protected static Node nodeIpV4_1;
+    protected static Node nodeIpV4_2;
 
     protected static IUser user;
     protected static IUser user2;
@@ -47,55 +47,55 @@ public class ClientTest extends BaseTest {
         user = new User("Druid Wensleydale", "qwerty", "dictionaryAttack", keyPair1.getPublic(), keyPair1.getPrivate(), new ArrayList<>());
         user2 = new User("Archibald Northbottom", "letmein", "dictionaryAttack", keyPair2.getPublic(), keyPair2.getPrivate(), new ArrayList<>());
 
-        clientIpV6 = new Client(BaseTest.getTestConfig1(), user, c1Id);
-        clientIpV4_1 = new Client(BaseTest.getTestConfig2(), user, c2Id);
-        clientIpV4_2 = new Client(BaseTest.getTestConfig3(), user2, c3Id);
+        nodeIpV6 = new Node(BaseTest.getTestConfig1(), user, c1Id);
+        nodeIpV4_1 = new Node(BaseTest.getTestConfig2(), user, c2Id);
+        nodeIpV4_2 = new Node(BaseTest.getTestConfig3(), user2, c3Id);
     }
 
     @After
     public void after()
             throws InterruptedException {
-        clientIpV6.shutdown();
-        clientIpV4_1.shutdown();
-        clientIpV4_2.shutdown();
+        nodeIpV6.shutdown();
+        nodeIpV4_1.shutdown();
+        nodeIpV4_2.shutdown();
 
         Thread.sleep(1000L);
     }
 
     @Test
     public void testClientId() {
-        assertEquals("Id of client1 is not equal", c1Id, clientIpV6.getClientDeviceId());
-        assertEquals("Id of client2 is not equal", c2Id, clientIpV4_1.getClientDeviceId());
-        assertEquals("Id of client3 is not equal", c3Id, clientIpV4_2.getClientDeviceId());
+        assertEquals("Id of client1 is not equal", c1Id, nodeIpV6.getClientDeviceId());
+        assertEquals("Id of client2 is not equal", c2Id, nodeIpV4_1.getClientDeviceId());
+        assertEquals("Id of client3 is not equal", c3Id, nodeIpV4_2.getClientDeviceId());
     }
 
     @Test
     public void testUser() {
-        assertEquals("User should be the same", user, clientIpV4_1.getUser());
-        assertEquals("User should be the same", user2, clientIpV4_2.getUser());
-        assertEquals("User should be the same", user, clientIpV6.getUser());
+        assertEquals("User should be the same", user, nodeIpV4_1.getUser());
+        assertEquals("User should be the same", user2, nodeIpV4_2.getUser());
+        assertEquals("User should be the same", user, nodeIpV6.getUser());
     }
 
     @Test
     public void testGetClientManager() {
-        assertNull("ClientManager should be null before starting", clientIpV6.getClientManager());
-        assertNull("IdentifierManager should be null before starting", clientIpV6.getIdentifierManager());
-        assertNull("UserManager should be null before starting", clientIpV6.getUserManager());
+        assertNull("NodeManager should be null before starting", nodeIpV6.getClientManager());
+        assertNull("IdentifierManager should be null before starting", nodeIpV6.getIdentifierManager());
+        assertNull("UserManager should be null before starting", nodeIpV6.getUserManager());
 
-        boolean succeededV6 = clientIpV6.start();
+        boolean succeededV6 = nodeIpV6.start();
 
-        assertTrue("Client should be started", succeededV6);
-        assertNotNull("ClientManager should be initialised after starting", clientIpV6.getClientManager());
-        assertNotNull("IdentifierManager should be initialised after starting", clientIpV6.getIdentifierManager());
-        assertNotNull("UserManager should be initialised after starting", clientIpV6.getUserManager());
+        assertTrue("Node should be started", succeededV6);
+        assertNotNull("NodeManager should be initialised after starting", nodeIpV6.getClientManager());
+        assertNotNull("IdentifierManager should be initialised after starting", nodeIpV6.getIdentifierManager());
+        assertNotNull("UserManager should be initialised after starting", nodeIpV6.getUserManager());
     }
 
     @Test
     public void testBootstrapPeer()
             throws InterruptedException {
-        boolean succeededV6 = clientIpV6.start();
-        boolean succeededV4_1 = clientIpV4_1.start();
-        boolean succeededV4_2 = clientIpV4_2.start();
+        boolean succeededV6 = nodeIpV6.start();
+        boolean succeededV4_1 = nodeIpV4_1.start();
+        boolean succeededV4_2 = nodeIpV4_2.start();
 
         assertTrue("IPv6 client did not succeed to start", succeededV6);
         assertTrue("IPv4_1 client did not succeed to start", succeededV4_1);
@@ -106,18 +106,18 @@ public class ClientTest extends BaseTest {
     public void testStartPeer()
             throws InterruptedException {
         // must be on different ports
-        assertFalse("Client should not be connected before started", clientIpV4_1.isConnected());
-        boolean succeededV4_1 = clientIpV4_1.start();
-        assertTrue("Client should be connected after starting", clientIpV4_1.isConnected());
+        assertFalse("Node should not be connected before started", nodeIpV4_1.isConnected());
+        boolean succeededV4_1 = nodeIpV4_1.start();
+        assertTrue("Node should be connected after starting", nodeIpV4_1.isConnected());
 
         assertTrue("IPv4_1 client did not succeed to start", succeededV4_1);
 
-        ClientLocation ipV4_1Client = new ClientLocation(UUID.randomUUID(), clientIpV4_1.getPeerAddress());
+        ClientLocation ipV4_1Client = new ClientLocation(UUID.randomUUID(), nodeIpV4_1.getPeerAddress());
 
-        boolean succeededV4 = clientIpV4_2.start(ipV4_1Client.getIpAddress(), ipV4_1Client.getPort());
+        boolean succeededV4 = nodeIpV4_2.start(ipV4_1Client.getIpAddress(), ipV4_1Client.getPort());
         assertTrue("IPv4 2 client did not succeed to start", succeededV4);
 
-        clientIpV4_2.shutdown();
+        nodeIpV4_2.shutdown();
     }
 
     @Test
@@ -127,34 +127,34 @@ public class ClientTest extends BaseTest {
         UUID exchangeId = UUID.randomUUID();
 
         // Set up "Protocol"
-        ObjectDataReplyHandler replyHandler1 = new ObjectDataReplyHandler(clientIpV4_1);
+        ObjectDataReplyHandler replyHandler1 = new ObjectDataReplyHandler(nodeIpV4_1);
         replyHandler1.addRequestCallbackHandler(DummyRequest.class, DummyRequestHandler.class);
 
-        ObjectDataReplyHandler replyHandler2 = new ObjectDataReplyHandler(clientIpV4_2);
+        ObjectDataReplyHandler replyHandler2 = new ObjectDataReplyHandler(nodeIpV4_2);
         replyHandler2.addRequestCallbackHandler(DummyRequest.class, DummyRequestHandler.class);
 
         // set object data reply handler on both sides
-        clientIpV4_1.setObjectDataReplyHandler(replyHandler1);
-        clientIpV4_2.setObjectDataReplyHandler(replyHandler2);
+        nodeIpV4_1.setObjectDataReplyHandler(replyHandler1);
+        nodeIpV4_2.setObjectDataReplyHandler(replyHandler2);
 
-        boolean c1 = clientIpV4_1.start();
-        boolean c2 = clientIpV4_2.start();
+        boolean c1 = nodeIpV4_1.start();
+        boolean c2 = nodeIpV4_2.start();
 
         assertTrue("Client1 did not succeed to start", c1);
         assertTrue("Client2 did not succeed to start", c2);
 
         List<ClientLocation> receiver = new ArrayList<>();
         receiver.add(new ClientLocation(
-                clientIpV4_2.getClientDeviceId(),
-                clientIpV4_2.getPeerAddress()
+                nodeIpV4_2.getClientDeviceId(),
+                nodeIpV4_2.getPeerAddress()
         ));
 
         IRequest request = new DummyRequest(
                 exchangeId,
                 new ClientDevice(
-                        clientIpV4_1.getUser().getUserName(),
-                        clientIpV4_1.getClientDeviceId(),
-                        clientIpV4_1.getPeerAddress()
+                        nodeIpV4_1.getUser().getUserName(),
+                        nodeIpV4_1.getClientDeviceId(),
+                        nodeIpV4_1.getPeerAddress()
                 ),
                 receiver
         );
@@ -164,13 +164,13 @@ public class ClientTest extends BaseTest {
         // now we wait on client 1 for the response
         replyHandler1.addResponseCallbackHandler(exchangeId, response -> {
             assertEquals("ExchangeId returned should be the same as sent", exchangeId, response.getExchangeId());
-            clientIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().remove(response.getExchangeId());
+            nodeIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().remove(response.getExchangeId());
             latch.countDown();
         });
 
-        assertEquals("Size of callbackHandler should be one, since the response was not yet processed", 1, clientIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().size());
+        assertEquals("Size of callbackHandler should be one, since the response was not yet processed", 1, nodeIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().size());
 
-        FutureDirect futureDirect = clientIpV4_1.sendDirect(request.getReceiverAddresses().iterator().next().getPeerAddress(), request);
+        FutureDirect futureDirect = nodeIpV4_1.sendDirect(request.getReceiverAddresses().iterator().next().getPeerAddress(), request);
         futureDirect.await();
 
         assertFalse("Future Direct should not have been failed (" + futureDirect.failedReason() + ")", futureDirect.isFailed());
@@ -181,6 +181,6 @@ public class ClientTest extends BaseTest {
         // wait until response has been received
         latch.await();
 
-        assertEquals("Size of callbackHandler should be zero, since the response was processed", 0, clientIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().size());
+        assertEquals("Size of callbackHandler should be zero, since the response was processed", 0, nodeIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().size());
     }
 }

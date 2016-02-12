@@ -13,7 +13,6 @@ import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDirect;
 import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.p2p.PeerBuilder;
-import net.tomp2p.p2p.builder.PingBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import org.rmatil.sync.network.core.exception.ConnectionException;

@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * A client of a particular user
  */
-public interface IClient {
+public interface INode {
 
     /**
      * Start the client as bootstrap peer
@@ -88,7 +88,7 @@ public interface IClient {
      *
      * @return The client manager
      */
-    IClientManager getClientManager();
+    INodeManager getClientManager();
 
     /**
      * Returns the user manager used.

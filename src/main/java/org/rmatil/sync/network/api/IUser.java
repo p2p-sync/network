@@ -62,7 +62,7 @@ public interface IUser {
      *
      * @return The list of locations
      *
-     * @see IClientManager The client manager to maintain locations, private and public keys
+     * @see INodeManager The client manager to maintain locations, private and public keys
      */
     List<ClientLocation> getClientLocations();
 

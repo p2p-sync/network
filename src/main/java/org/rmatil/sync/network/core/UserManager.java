@@ -1,6 +1,6 @@
 package org.rmatil.sync.network.core;
 
-import org.rmatil.sync.network.api.IClientManager;
+import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.api.IUserManager;
 import org.rmatil.sync.network.core.model.ClientLocation;
@@ -17,10 +17,10 @@ public class UserManager implements IUserManager {
 
     private static final Logger logger = LoggerFactory.getLogger(UserManager.class);
 
-    protected IClientManager clientManager;
+    protected INodeManager   clientManager;
     protected ClientLocation clientLocation;
 
-    public UserManager(IClientManager clientManager, ClientLocation clientLocation) {
+    public UserManager(INodeManager clientManager, ClientLocation clientLocation) {
         this.clientManager = clientManager;
         this.clientLocation = clientLocation;
     }

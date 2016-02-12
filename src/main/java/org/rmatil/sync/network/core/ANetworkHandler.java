@@ -48,7 +48,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
     /**
      * The client of this device
      */
-    protected IClient client;
+    protected INode client;
 
     /**
      * A map having the client device which responded along with its response
@@ -64,7 +64,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
     /**
      * @param client The client of this device
      */
-    public ANetworkHandler(IClient client) {
+    public ANetworkHandler(INode client) {
         this.client = client;
         this.notifiedClients = new HashMap<>();
         this.waitForSentCountDownLatch = new CountDownLatch(1);

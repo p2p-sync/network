@@ -3,10 +3,10 @@ package org.rmatil.sync.network.test.core;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.rmatil.sync.network.api.IClient;
-import org.rmatil.sync.network.api.IClientManager;
+import org.rmatil.sync.network.api.INode;
+import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IUser;
-import org.rmatil.sync.network.core.Client;
+import org.rmatil.sync.network.core.Node;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
@@ -26,11 +26,11 @@ public class NetworkHandlerTest extends BaseTest {
 
     protected static IUser user;
 
-    protected static IClientManager clientManager1;
-    protected static IClientManager clientManager2;
+    protected static INodeManager clientManager1;
+    protected static INodeManager clientManager2;
 
-    protected static IClient client1;
-    protected static IClient client2;
+    protected static INode client1;
+    protected static INode client2;
 
     @BeforeClass
     public static void setUp()
@@ -49,13 +49,13 @@ public class NetworkHandlerTest extends BaseTest {
                 new ArrayList<>()
         );
 
-        client1 = new Client(
+        client1 = new Node(
                 BaseTest.getTestConfig1(),
                 user,
                 clientDeviceId1
         );
 
-        client2 = new Client(
+        client2 = new Node(
                 BaseTest.getTestConfig2(),
                 user,
                 clientDeviceId2

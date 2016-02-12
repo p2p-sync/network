@@ -1,6 +1,6 @@
 package org.rmatil.sync.network.test.core;
 
-import org.rmatil.sync.network.api.IClient;
+import org.rmatil.sync.network.api.INode;
 import org.rmatil.sync.network.api.IRequest;
 import org.rmatil.sync.network.api.IRequestCallback;
 import org.rmatil.sync.network.api.IResponse;
@@ -13,11 +13,11 @@ public class DummyRequestHandler implements IRequestCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(DummyRequestHandler.class);
 
-    protected IClient client;
+    protected INode    client;
     protected IRequest request;
 
     @Override
-    public void setClient(IClient client) {
+    public void setClient(INode client) {
         this.client = client;
     }
 
