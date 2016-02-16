@@ -8,7 +8,7 @@ import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.NodeManager;
 import org.rmatil.sync.network.core.Connection;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
@@ -44,10 +44,10 @@ public class NodeManagerTest {
     protected static INodeManager clientManager2;
     protected static INodeManager clientManager3;
 
-    protected static IUser          user1;
-    protected static IUser          user2;
-    protected static ClientLocation l1;
-    protected static ClientLocation l2;
+    protected static IUser        user1;
+    protected static IUser        user2;
+    protected static NodeLocation l1;
+    protected static NodeLocation l2;
 
 
     @BeforeClass
@@ -77,8 +77,8 @@ public class NodeManagerTest {
         con3.connect(con1.getPeerDHT().peerAddress().inetAddress().getHostAddress(), con1.getPeerDHT().peerAddress().tcpPort());
         peer3 = con3.getPeerDHT();
 
-        l1 = new ClientLocation(UUID.randomUUID(), peer1.peerAddress());
-        l2 = new ClientLocation(UUID.randomUUID(), peer2.peerAddress());
+        l1 = new NodeLocation(UUID.randomUUID(), peer1.peerAddress());
+        l2 = new NodeLocation(UUID.randomUUID(), peer2.peerAddress());
 
         dhtStorageAdapter1 = new DhtStorageAdapter(peer1);
         dhtStorageAdapter2 = new DhtStorageAdapter(peer2);
@@ -122,21 +122,21 @@ public class NodeManagerTest {
     @After
     public void after()
             throws InputOutputException {
-        clientManager1.removeClientLocation(user1, l1);
-        clientManager1.removeClientLocation(user1, l2);
+        clientManager1.removeNodeLocation(user1, l1);
+        clientManager1.removeNodeLocation(user1, l2);
     }
 
     @Test
     public void testAddLocation()
             throws InputOutputException {
-        clientManager1.addClientLocation(user1, l1);
+        clientManager1.addNodeLocation(user1, l1);
 
-        List<ClientLocation> result = clientManager1.getClientLocations(user1);
-        List<ClientLocation> result2 = clientManager2.getClientLocations(user1);
+        List<NodeLocation> result = clientManager1.getNodeLocations(user1);
+        List<NodeLocation> result2 = clientManager2.getNodeLocations(user1);
 
         // we should also be able to fetch the locations from a different user's client
-        IUser tmpUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), null, user1.getClientLocations());
-        List<ClientLocation> result3 = clientManager3.getClientLocations(tmpUser);
+        IUser tmpUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), null, user1.getNodeLocations());
+        List<NodeLocation> result3 = clientManager3.getNodeLocations(tmpUser);
 
         assertEquals("Result has different amount of locations saved", 1, result.size());
         assertThat("result does not contain location", result, hasItem(l1));
@@ -149,37 +149,37 @@ public class NodeManagerTest {
     @Test
     public void testRemoveLocation()
             throws InputOutputException {
-        clientManager1.addClientLocation(user1, l1);
+        clientManager1.addNodeLocation(user1, l1);
 
-        List<ClientLocation> result = clientManager1.getClientLocations(user1);
+        List<NodeLocation> result = clientManager1.getNodeLocations(user1);
         assertEquals("Result has different amount of locations saved", 1, result.size());
         assertThat("result does not contain location", result, hasItem(l1));
 
         // we should be unable to remove a location from a different user's client
-        IUser tmpUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), null, user1.getClientLocations());
-        clientManager3.removeClientLocation(tmpUser, l1);
+        IUser tmpUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), null, user1.getNodeLocations());
+        clientManager3.removeNodeLocation(tmpUser, l1);
 
         // this should still have the result in it since the clientManager3 has a different user
         // and therefore a different private key -> no access to delete
-        List<ClientLocation> result3 = clientManager1.getClientLocations(user1);
+        List<NodeLocation> result3 = clientManager1.getNodeLocations(user1);
         assertEquals("Result has different amount of locations saved", 1, result3.size());
         assertThat("result does not contain location", result3, hasItem(l1));
 
         // this should remove the location since the client has the same public key pair of the same user
-        clientManager2.removeClientLocation(user1, l1);
-        List<ClientLocation> result2 = clientManager1.getClientLocations(user1);
+        clientManager2.removeNodeLocation(user1, l1);
+        List<NodeLocation> result2 = clientManager1.getNodeLocations(user1);
         assertEquals("Result should be empty after removal of other client", 0, result2.size());
     }
 
     @Test
     public void testGetLocations()
             throws InputOutputException {
-        clientManager1.addClientLocation(user1, l1);
-        clientManager1.addClientLocation(user1, l2);
+        clientManager1.addNodeLocation(user1, l1);
+        clientManager1.addNodeLocation(user1, l2);
 
-        List<ClientLocation> result = clientManager1.getClientLocations(user1);
-        List<ClientLocation> result2 = clientManager2.getClientLocations(user1);
-        List<ClientLocation> result3 = clientManager3.getClientLocations(user1);
+        List<NodeLocation> result = clientManager1.getNodeLocations(user1);
+        List<NodeLocation> result2 = clientManager2.getNodeLocations(user1);
+        List<NodeLocation> result3 = clientManager3.getNodeLocations(user1);
         assertEquals("Result has not both locations in it", 2, result.size());
         assertThat("Result does not contain both locations", result, hasItems(l1, l2));
         assertEquals("Result2 has not both locations in it", 2, result2.size());
@@ -191,11 +191,11 @@ public class NodeManagerTest {
     @Test
     public void testAccessForOtherUsers()
             throws InputOutputException {
-        clientManager1.addClientLocation(user1, l1);
+        clientManager1.addNodeLocation(user1, l1);
 
         // location manager of user2 wants to receive locations
         // from user1
-        List<ClientLocation> result = clientManager3.getClientLocations(new User(
+        List<NodeLocation> result = clientManager3.getNodeLocations(new User(
                 user1.getUserName(),
                 "asdf",
                 "asf",
@@ -206,7 +206,7 @@ public class NodeManagerTest {
         assertEquals("Result has different amount of locations saved", 1, result.size());
         assertThat("result does not contain location", result, hasItem(l1));
 
-        result = clientManager3.getClientLocations(user1.getUserName());
+        result = clientManager3.getNodeLocations(user1.getUserName());
         assertEquals("Result has different amount of locations saved", 1, result.size());
         assertThat("result does not contain location", result, hasItem(l1));
 
@@ -214,19 +214,19 @@ public class NodeManagerTest {
         // since he is not the correct owner, he can not persist anything
         // owner := hash(public_key) == domain
         // e.g Owner of domain 0x1234 is peer where 0x1234 == hash(public_key)
-        clientManager3.addClientLocation(user2, l2);
+        clientManager3.addNodeLocation(user2, l2);
 
-        List<ClientLocation> resultAfterAdding = clientManager1.getClientLocations(user1);
+        List<NodeLocation> resultAfterAdding = clientManager1.getNodeLocations(user1);
         assertEquals("Result has different amount of locations saved", 1, resultAfterAdding.size());
         assertThat("Result does not contain location l1", resultAfterAdding, hasItem(l1));
         assertThat("result should not contain location l2", resultAfterAdding, not(hasItem(l2)));
 
 
-        clientManager1.addClientLocation(user1, l2);
+        clientManager1.addNodeLocation(user1, l2);
 
         // we should be able to get all locations from another user
-        IUser otherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), null, user1.getClientLocations());
-        List<ClientLocation> result2 = clientManager3.getClientLocations(otherUser);
+        IUser otherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), null, user1.getNodeLocations());
+        List<NodeLocation> result2 = clientManager3.getNodeLocations(otherUser);
         assertEquals("Result has different amount of locations saved", 2, result2.size());
         assertThat("Result does not contain location l1", result2, hasItem(l1));
         assertThat("result should not contain location l2", result2, hasItem(l1));
@@ -245,7 +245,7 @@ public class NodeManagerTest {
 
         // other user should not be able to overwrite private key of another user
         clientManager3.addPrivateKey(user1);
-        IUser anotherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), user2.getPrivateKey(), user1.getClientLocations());
+        IUser anotherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user1.getPublicKey(), user2.getPrivateKey(), user1.getNodeLocations());
         PrivateKey fetchedPr3 = clientManager1.getPrivateKey(anotherUser);
         assertNull("Fetched private key of other user should be null", fetchedPr3);
     }
@@ -264,7 +264,7 @@ public class NodeManagerTest {
         assertArrayEquals("Fetched public key is not the same (2)", user1.getPublicKey().getEncoded(), fetchedPk1.getEncoded());
         assertArrayEquals("Fetched public key is not the same (3)", user1.getPublicKey().getEncoded(), fetchedPk2.getEncoded());
 
-        IUser anotherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user2.getPublicKey(), user2.getPrivateKey(), user1.getClientLocations());
+        IUser anotherUser = new User(user1.getUserName(), "someWrongPassword", "dictionaryAttack", user2.getPublicKey(), user2.getPrivateKey(), user1.getNodeLocations());
         PublicKey fetchedPk3 = clientManager3.getPublicKey(anotherUser);
 
         assertNotNull("Other client should be able to fetch public key of user1", fetchedPk3);

@@ -3,7 +3,7 @@ package org.rmatil.sync.network.core;
 import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.api.IUserManager;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,19 +17,19 @@ public class UserManager implements IUserManager {
 
     private static final Logger logger = LoggerFactory.getLogger(UserManager.class);
 
-    protected INodeManager   clientManager;
-    protected ClientLocation clientLocation;
+    protected INodeManager nodeManager;
+    protected NodeLocation nodeLocation;
 
-    public UserManager(INodeManager clientManager, ClientLocation clientLocation) {
-        this.clientManager = clientManager;
-        this.clientLocation = clientLocation;
+    public UserManager(INodeManager nodeManager, NodeLocation nodeLocation) {
+        this.nodeManager = nodeManager;
+        this.nodeLocation = nodeLocation;
     }
 
     @Override
     public boolean isRegistered(String username)
             throws InputOutputException {
 
-        PublicKey publicKey = this.clientManager.getPublicKey(username);
+        PublicKey publicKey = this.nodeManager.getPublicKey(username);
 
         // if no public key is found for an user, then we assume
         // the username is not used yet
@@ -39,12 +39,12 @@ public class UserManager implements IUserManager {
     @Override
     public boolean login(IUser user) {
         try {
-            this.clientManager.addClientLocation(user, this.clientLocation);
-            this.clientManager.addPrivateKey(user);
-            this.clientManager.addPublicKey(user);
-            this.clientManager.addSalt(user);
+            this.nodeManager.addNodeLocation(user, this.nodeLocation);
+            this.nodeManager.addPrivateKey(user);
+            this.nodeManager.addPublicKey(user);
+            this.nodeManager.addSalt(user);
         } catch (InputOutputException e) {
-            logger.error("Failed to add client location during login. Message: " + e.getMessage());
+            logger.error("Failed to add node location during login. Message: " + e.getMessage());
             return false;
         }
 
@@ -54,9 +54,9 @@ public class UserManager implements IUserManager {
     @Override
     public boolean logout(IUser user) {
         try {
-            this.clientManager.removeClientLocation(user, this.clientLocation);
+            this.nodeManager.removeNodeLocation(user, this.nodeLocation);
         } catch (InputOutputException e) {
-            logger.error("Failed to remove client location during logout. Message: " + e.getMessage());
+            logger.error("Failed to remove node location during logout. Message: " + e.getMessage());
             return false;
         }
 

@@ -10,12 +10,12 @@ import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import java.util.UUID;
 
 /**
- * A client of a particular user
+ * A node of a particular user
  */
 public interface INode {
 
     /**
-     * Start the client as bootstrap peer
+     * Start the node as bootstrap peer
      *
      * @return True, if starting as bootstrap peer succeeded, false otherwise
      *
@@ -25,11 +25,11 @@ public interface INode {
             throws ConnectionException;
 
     /**
-     * Start the client and let it connect to an online peer
-     * at the given client location
+     * Start the node and let it connect to an online peer
+     * at the given node location
      *
-     * @param bootstrapIpAddress The ip address of an online client to which to bootstrap to
-     * @param bootstrapPort      The port of an online client to which to bootstrap to
+     * @param bootstrapIpAddress The ip address of an online node to which to bootstrap to
+     * @param bootstrapPort      The port of an online node to which to bootstrap to
      *
      * @return True, if starting and connecting succeeded, false otherwise
      *
@@ -40,9 +40,9 @@ public interface INode {
             throws ConnectionException, ConnectionFailedException;
 
     /**
-     * Shuts down the client. Blocks until success or failure.
+     * Shuts down the node. Blocks until success or failure.
      *
-     * @return True, if the client could have been shut down, false otherwise
+     * @return True, if the node could have been shut down, false otherwise
      */
     boolean shutdown();
 
@@ -69,30 +69,30 @@ public interface INode {
     ObjectDataReplyHandler getObjectDataReplyHandler();
 
     /**
-     * Returns the uuid of this client's device
+     * Returns the uuid of this node's device
      *
      * @return The uuid of this device
      */
     UUID getClientDeviceId();
 
     /**
-     * Returns the user corresponding to this client
+     * Returns the user corresponding to this node
      *
-     * @return The user of this client
+     * @return The user of this node
      */
     IUser getUser();
 
     /**
-     * Returns the client manager used.
-     * <p color="red">This is only initialised after starting the client</p>
+     * Returns the node manager used.
+     * <p color="red">This is only initialised after starting the node</p>
      *
-     * @return The client manager
+     * @return The node manager
      */
-    INodeManager getClientManager();
+    INodeManager getNodeManager();
 
     /**
      * Returns the user manager used.
-     * <p color="red">This is only initialised after starting the client</p>
+     * <p color="red">This is only initialised after starting the node</p>
      *
      * @return The user manager
      */
@@ -100,14 +100,14 @@ public interface INode {
 
     /**
      * Returns the identifier manager used.
-     * <p color="red">This is only initialised after starting the client</p>
+     * <p color="red">This is only initialised after starting the node</p>
      *
      * @return The identifier manager
      */
     IIdentifierManager<String, UUID> getIdentifierManager();
 
     /**
-     * Returns the peer address of the client
+     * Returns the peer address of the node
      *
      * @return The peer address
      */
@@ -117,12 +117,12 @@ public interface INode {
      * Sends the given object to the specified peer address.
      * Note, that you still have to call {@link FutureDirect#await()} on it.
      *
-     * @param receiverAddress The address of the client to which the object should be sent
-     * @param dataToSend      The data to send to the client
+     * @param receiverAddress The address of the node to which the object should be sent
+     * @param dataToSend      The data to send to the node
      *
      * @return The Future. Note, that you have to await until this future is complete
      *
-     * @throws ObjectSendFailedException If sending the object to the client failed
+     * @throws ObjectSendFailedException If sending the object to the node failed
      */
     FutureDirect sendDirect(PeerAddress receiverAddress, Object dataToSend)
             throws ObjectSendFailedException;

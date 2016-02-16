@@ -8,7 +8,7 @@ import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.Connection;
 import org.rmatil.sync.network.core.IdentifierManager;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.model.IdentifierMap;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
@@ -45,10 +45,10 @@ public class IdentifierManagerTest {
     protected static IIdentifierManager<String, UUID> identifierManager2;
     protected static IIdentifierManager<String, UUID> identifierManager3;
 
-    protected static IUser          user1;
-    protected static IUser          user2;
-    protected static ClientLocation l1;
-    protected static ClientLocation l2;
+    protected static IUser        user1;
+    protected static IUser        user2;
+    protected static NodeLocation l1;
+    protected static NodeLocation l2;
 
     protected static final String KEY_1   = "Hello there!";
     protected static final UUID   VALUE_1 = UUID.randomUUID();
@@ -86,8 +86,8 @@ public class IdentifierManagerTest {
         con3.connect(con1.getPeerDHT().peerAddress().inetAddress().getHostAddress(), con1.getPeerDHT().peerAddress().tcpPort());
         peer3 = con3.getPeerDHT();
 
-        l1 = new ClientLocation(UUID.randomUUID(), peer1.peerAddress());
-        l2 = new ClientLocation(UUID.randomUUID(), peer2.peerAddress());
+        l1 = new NodeLocation(UUID.randomUUID(), peer1.peerAddress());
+        l2 = new NodeLocation(UUID.randomUUID(), peer2.peerAddress());
 
 
         dhtStorageAdapter1 = new DhtStorageAdapter(peer1);

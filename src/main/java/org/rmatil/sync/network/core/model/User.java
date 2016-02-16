@@ -15,13 +15,13 @@ import java.util.List;
  */
 public class User implements IUser {
 
-    protected String               userName;
-    protected String               password;
-    protected String               salt;
-    protected PublicKey            publicKey;
-    protected PrivateKey           privateKey;
-    protected List<ClientLocation> clientLocations;
-    protected SecretKey            secretKey;
+    protected String             userName;
+    protected String             password;
+    protected String             salt;
+    protected PublicKey          publicKey;
+    protected PrivateKey         privateKey;
+    protected List<NodeLocation> nodeLocations;
+    protected SecretKey          secretKey;
 
     /**
      * Creates a new user object and a symmetric key for the password specified.
@@ -34,18 +34,18 @@ public class User implements IUser {
      * @param salt            The salt to use for generating a secret key
      * @param publicKey       The public key of the user
      * @param privateKey      The private key of the user
-     * @param clientLocations A list of client locations
+     * @param nodeLocations A list of node locations
      *
      * @throws SecurityException If generating the symmetric key from the password failed
      */
-    public User(String userName, String password, String salt, PublicKey publicKey, PrivateKey privateKey, List<ClientLocation> clientLocations)
+    public User(String userName, String password, String salt, PublicKey publicKey, PrivateKey privateKey, List<NodeLocation> nodeLocations)
             throws SecurityException {
         this.userName = userName;
         this.password = password;
         this.salt = salt;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
-        this.clientLocations = clientLocations;
+        this.nodeLocations = nodeLocations;
         this.secretKey = Pbkdf2Factory.generateKey(this.password, salt);
     }
 
@@ -79,9 +79,8 @@ public class User implements IUser {
         return new KeyPair(this.publicKey, this.privateKey);
     }
 
-    @Override
-    public List<ClientLocation> getClientLocations() {
-        return clientLocations;
+    public List<NodeLocation> getNodeLocations() {
+        return nodeLocations;
     }
 
     @Override

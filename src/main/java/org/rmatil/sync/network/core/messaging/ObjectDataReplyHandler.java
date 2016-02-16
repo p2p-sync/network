@@ -33,9 +33,9 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     protected Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> requestCallbackHandlers;
 
     /**
-     * The client to use for sending back responses
+     * The node to use for sending back responses
      */
-    protected INode client;
+    protected INode node;
 
     /**
      * A flag indicating that a master peer has been elected
@@ -43,22 +43,22 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     protected boolean isMasterElected;
 
     /**
-     * @param client                   The client used for sending back the responses of a request
+     * @param node                   The node used for sending back the responses of a request
      * @param responseCallbackHandlers A map of all registered responseCallbackHandlers. Specify as key the exchange id of the request
      *                                 the corresponding objectDataReply should be applied to if the request matches the class
      * @param requestCallbackHandlers  A map of all registered requestCallbackHandlers. Specify as key the class of the request for which the corresponding request callback handler should be invoked
      */
-    public ObjectDataReplyHandler(INode client, Map<UUID, IResponseCallback> responseCallbackHandlers, Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> requestCallbackHandlers) {
-        this.client = client;
+    public ObjectDataReplyHandler(INode node, Map<UUID, IResponseCallback> responseCallbackHandlers, Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> requestCallbackHandlers) {
+        this.node = node;
         this.responseCallbackHandlers = responseCallbackHandlers;
         this.requestCallbackHandlers = requestCallbackHandlers;
     }
 
     /**
-     * @param client The client used for sending back the responses of a request
+     * @param node The node used for sending back the responses of a request
      */
-    public ObjectDataReplyHandler(INode client) {
-        this.client = client;
+    public ObjectDataReplyHandler(INode node) {
+        this.node = node;
         this.responseCallbackHandlers = new HashMap<>();
         this.requestCallbackHandlers = new HashMap<>();
     }
@@ -96,7 +96,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
      * is incoming matching the given class
      *
      * @param clazz           The request class to register the callback (Any implementation of {@link IRequest})
-     * @param requestCallback The request callback which should be called if the specified request gets to the client (Any implementation of {@link IRequestCallback})
+     * @param requestCallback The request callback which should be called if the specified request gets to the node (Any implementation of {@link IRequestCallback})
      */
     public void addRequestCallbackHandler(Class<? extends IRequest> clazz, Class<? extends IRequestCallback> requestCallback) {
         this.requestCallbackHandlers.put(clazz, requestCallback);
@@ -121,7 +121,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     }
 
     /**
-     * Returns true, if a master client is elected
+     * Returns true, if a master node is elected
      *
      * @return True, if a master is elected, false otherwise
      */
@@ -150,7 +150,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
 
                 // create a new instance running in its own thread
                 IRequestCallback requestCallback = requestCallbackClass.newInstance();
-                requestCallback.setClient(this.client);
+                requestCallback.setNode(this.node);
 
                 requestCallback.setRequest((IRequest) request);
 

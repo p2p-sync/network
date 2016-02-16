@@ -5,7 +5,7 @@ import org.rmatil.sync.network.api.IRequest;
 import org.rmatil.sync.network.api.IRequestCallback;
 import org.rmatil.sync.network.api.IResponse;
 import org.rmatil.sync.network.core.model.ClientDevice;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ public class DummyRequestHandler implements IRequestCallback {
     protected IRequest request;
 
     @Override
-    public void setClient(INode client) {
+    public void setNode(INode client) {
         this.client = client;
     }
 
@@ -35,7 +35,7 @@ public class DummyRequestHandler implements IRequestCallback {
                         this.client.getClientDeviceId(),
                         this.client.getPeerAddress()
                 ),
-                new ClientLocation(
+                new NodeLocation(
                         this.request.getClientDevice().getClientDeviceId(),
                         this.request.getClientDevice().getPeerAddress()
                 )

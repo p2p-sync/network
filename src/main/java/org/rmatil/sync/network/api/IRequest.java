@@ -1,7 +1,7 @@
 package org.rmatil.sync.network.api;
 
 import org.rmatil.sync.network.core.model.ClientDevice;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 
 import java.io.Serializable;
 import java.util.List;
@@ -19,7 +19,7 @@ public interface IRequest extends Serializable {
      *
      * @return All addresses to which this request should be sent
      */
-    List<ClientLocation> getReceiverAddresses();
+    List<NodeLocation> getReceiverAddresses();
 
     /**
      * The id of the information exchange
@@ -29,9 +29,9 @@ public interface IRequest extends Serializable {
     UUID getExchangeId();
 
     /**
-     * The client device which sends this request
+     * The node device which sends this request
      *
-     * @return The client device which has sent this request
+     * @return The node device which has sent this request
      */
     ClientDevice getClientDevice();
 }

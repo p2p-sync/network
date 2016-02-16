@@ -1,6 +1,6 @@
 package org.rmatil.sync.network.api;
 
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 
 import javax.crypto.SecretKey;
 import java.security.KeyPair;
@@ -62,9 +62,9 @@ public interface IUser {
      *
      * @return The list of locations
      *
-     * @see INodeManager The client manager to maintain locations, private and public keys
+     * @see INodeManager The node manager to maintain locations, private and public keys
      */
-    List<ClientLocation> getClientLocations();
+    List<NodeLocation> getNodeLocations();
 
     /**
      * Generates the symmetric key of either 128 or 256 bit length based on the user password, depending

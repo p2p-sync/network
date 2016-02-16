@@ -16,11 +16,11 @@ public class DummyNetworkHandler extends ANetworkHandler<Boolean> {
 
     private final static Logger logger = LoggerFactory.getLogger(DummyNetworkHandler.class);
 
-    protected INodeManager clientManager;
+    protected INodeManager nodeManager;
 
-    public DummyNetworkHandler(INode client, INodeManager clientManager) {
-        super(client);
-        this.clientManager = clientManager;
+    public DummyNetworkHandler(INode node, INodeManager nodeManager) {
+        super(node);
+        this.nodeManager = nodeManager;
     }
 
     @Override
@@ -28,16 +28,16 @@ public class DummyNetworkHandler extends ANetworkHandler<Boolean> {
 
         UUID exchangeId = UUID.randomUUID();
         ClientDevice clientDevice = new ClientDevice(
-                this.client.getUser().getUserName(),
-                this.client.getClientDeviceId(),
-                this.client.getPeerAddress()
+                super.node.getUser().getUserName(),
+                super.node.getClientDeviceId(),
+                super.node.getPeerAddress()
         );
 
         logger.info("Creating request " + exchangeId);
-        this.client.getObjectDataReplyHandler().addResponseCallbackHandler(exchangeId, this);
+        super.node.getObjectDataReplyHandler().addResponseCallbackHandler(exchangeId, this);
         IRequest dummyRequest;
         try {
-            dummyRequest = new DummyRequest(exchangeId, clientDevice, this.clientManager.getClientLocations(this.client.getUser()));
+            dummyRequest = new DummyRequest(exchangeId, clientDevice, this.nodeManager.getNodeLocations(super.node.getUser()));
         } catch (InputOutputException e) {
             logger.error("Can not get all client locations from the user");
             return;

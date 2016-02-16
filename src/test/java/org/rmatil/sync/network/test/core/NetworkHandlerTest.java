@@ -73,8 +73,8 @@ public class NetworkHandlerTest extends BaseTest {
         client1.start();
         client2.start(client1.getPeerAddress().inetAddress().getHostAddress(), client1.getPeerAddress().tcpPort());
 
-        clientManager1 = client1.getClientManager();
-        clientManager2 = client2.getClientManager();
+        clientManager1 = client1.getNodeManager();
+        clientManager2 = client2.getNodeManager();
     }
 
     @AfterClass

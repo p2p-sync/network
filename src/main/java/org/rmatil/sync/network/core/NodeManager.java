@@ -2,7 +2,7 @@ package org.rmatil.sync.network.core;
 
 import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IUser;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.security.encryption.symmetric.ISymmetricEncryption;
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesEncryption;
 import org.rmatil.sync.network.core.serialize.ByteSerializer;
@@ -20,9 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An independent manager which administers client locations
+ * An independent manager which administers node locations
  * from various users.
- * Note, that to add or remove a client location to an user, write permission is
+ * Note, that to add or remove a node location to an user, write permission is
  * ensured by using the public key of the given user.
  */
 public class NodeManager implements INodeManager {
@@ -73,7 +73,7 @@ public class NodeManager implements INodeManager {
     }
 
     @Override
-    public void addClientLocation(IUser user, ClientLocation location)
+    public void addNodeLocation(IUser user, NodeLocation location)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 user.getUserName(),
@@ -83,7 +83,7 @@ public class NodeManager implements INodeManager {
 
         logger.trace("Adding location on location key " + dhtPathElement.getLocationKey() + ", using content key " + dhtPathElement.getContentKey() + " and domain key " + dhtPathElement.getDomainKey());
 
-        List<ClientLocation> locations = this.getClientLocations(user);
+        List<NodeLocation> locations = this.getNodeLocations(user);
         locations.add(location);
 
         byte[] bytes;
@@ -95,12 +95,12 @@ public class NodeManager implements INodeManager {
 
         this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
 
-        user.getClientLocations().clear();
-        user.getClientLocations().addAll(locations);
+        user.getNodeLocations().clear();
+        user.getNodeLocations().addAll(locations);
     }
 
     @Override
-    public void removeClientLocation(IUser user, ClientLocation location)
+    public void removeNodeLocation(IUser user, NodeLocation location)
             throws InputOutputException {
         // private key must be used to access for write
         DhtPathElement dhtPathElement = new DhtPathElement(
@@ -109,7 +109,7 @@ public class NodeManager implements INodeManager {
                 this.domainKey
         );
 
-        List<ClientLocation> locations = this.getClientLocations(user);
+        List<NodeLocation> locations = this.getNodeLocations(user);
         locations.remove(location);
 
         byte[] bytes;
@@ -121,24 +121,24 @@ public class NodeManager implements INodeManager {
 
         this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
 
-        user.getClientLocations().clear();
-        user.getClientLocations().addAll(locations);
+        user.getNodeLocations().clear();
+        user.getNodeLocations().addAll(locations);
     }
 
     @Override
-    public List<ClientLocation> getClientLocations(IUser user)
+    public List<NodeLocation> getNodeLocations(IUser user)
             throws InputOutputException {
 
-        List<ClientLocation> locations = this.getClientLocations(user.getUserName());
+        List<NodeLocation> locations = this.getNodeLocations(user.getUserName());
 
-        user.getClientLocations().clear();
-        user.getClientLocations().addAll(locations);
+        user.getNodeLocations().clear();
+        user.getNodeLocations().addAll(locations);
 
         return locations;
     }
 
     @Override
-    public List<ClientLocation> getClientLocations(String username)
+    public List<NodeLocation> getNodeLocations(String username)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
                 username,
@@ -153,9 +153,9 @@ public class NodeManager implements INodeManager {
             return new ArrayList<>();
         }
 
-        List<ClientLocation> locations;
+        List<NodeLocation> locations;
         try {
-            locations = (List<ClientLocation>) ByteSerializer.fromBytes(bytes);
+            locations = (List<NodeLocation>) ByteSerializer.fromBytes(bytes);
         } catch (IOException | ClassNotFoundException e) {
             throw new InputOutputException(e);
         }

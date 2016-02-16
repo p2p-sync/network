@@ -9,11 +9,11 @@ package org.rmatil.sync.network.api;
 public interface IRequestCallback extends Runnable {
 
     /**
-     * Set the client to use for sending responses back
+     * Set the node to use for sending responses back
      *
-     * @param client The client to use
+     * @param node The node to use
      */
-    void setClient(INode client);
+    void setNode(INode node);
 
     /**
      * Set the request to handle

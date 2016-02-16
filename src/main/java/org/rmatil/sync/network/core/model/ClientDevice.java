@@ -7,29 +7,29 @@ import java.util.UUID;
 
 /**
  * A wrapper for representing some particular data
- * about the client of a user.
+ * about the node of a user.
  */
 public class ClientDevice implements Serializable {
 
     /**
-     * The user name of the user to which this client belongs
+     * The user name of the user to which this node belongs
      */
     protected String userName;
 
     /**
-     * The unique id of this client
+     * The unique id of this node
      */
     protected UUID clientDeviceId;
 
     /**
-     * The address of this client
+     * The address of this node
      */
     protected PeerAddress peerAddress;
 
     /**
-     * @param userName       The user name of the user to which this client belongs
-     * @param clientDeviceId The unique client id
-     * @param peerAddress    The address of the client
+     * @param userName       The user name of the user to which this node belongs
+     * @param clientDeviceId The unique node id
+     * @param peerAddress    The address of the node
      */
     public ClientDevice(String userName, UUID clientDeviceId, PeerAddress peerAddress) {
         this.userName = userName;
@@ -38,7 +38,7 @@ public class ClientDevice implements Serializable {
     }
 
     /**
-     * Returns the user name of the user to which this client belongs
+     * Returns the user name of the user to which this node belongs
      *
      * @return The user name
      */
@@ -47,25 +47,25 @@ public class ClientDevice implements Serializable {
     }
 
     /**
-     * The unique client device id
+     * The unique node device id
      *
-     * @return The client id
+     * @return The node id
      */
     public UUID getClientDeviceId() {
         return clientDeviceId;
     }
 
     /**
-     * The address of this client device
+     * The address of this node device
      *
-     * @return The address of this client
+     * @return The address of this node
      */
     public PeerAddress getPeerAddress() {
         return peerAddress;
     }
 
     /**
-     * Sets the client's address
+     * Sets the node's address
      *
      * @param peerAddress The address to set
      */

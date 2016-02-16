@@ -10,7 +10,7 @@ import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.NodeManager;
 import org.rmatil.sync.network.core.Connection;
 import org.rmatil.sync.network.core.UserManager;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
@@ -43,11 +43,11 @@ public class UserManagerTest {
     protected static INodeManager clientManager2;
     protected static INodeManager clientManager3;
 
-    protected static IUser          user1;
-    protected static IUser          user2;
-    protected static ClientLocation l1;
-    protected static ClientLocation l2;
-    protected static ClientLocation l3;
+    protected static IUser        user1;
+    protected static IUser        user2;
+    protected static NodeLocation l1;
+    protected static NodeLocation l2;
+    protected static NodeLocation l3;
 
     protected static UserManager userManager1;
     protected static UserManager userManager2;
@@ -84,9 +84,9 @@ public class UserManagerTest {
         con3.connect(con1.getPeerDHT().peerAddress().inetAddress().getHostAddress(), con1.getPeerDHT().peerAddress().tcpPort());
         peer3 = con3.getPeerDHT();
 
-        l1 = new ClientLocation(UUID.randomUUID(), peer1.peerAddress());
-        l2 = new ClientLocation(UUID.randomUUID(), peer2.peerAddress());
-        l3 = new ClientLocation(UUID.randomUUID(), peer3.peerAddress());
+        l1 = new NodeLocation(UUID.randomUUID(), peer1.peerAddress());
+        l2 = new NodeLocation(UUID.randomUUID(), peer2.peerAddress());
+        l3 = new NodeLocation(UUID.randomUUID(), peer3.peerAddress());
 
         dhtStorageAdapter1 = new DhtStorageAdapter(peer1);
         dhtStorageAdapter2 = new DhtStorageAdapter(peer2);
@@ -197,7 +197,7 @@ public class UserManagerTest {
         // the user1's client does not have write access
         userManager1.logout(user2);
 
-        assertEquals("ClientLocations should not be removed", 1, clientManager3.getClientLocations(user2).size());
+        assertEquals("ClientLocations should not be removed", 1, clientManager3.getNodeLocations(user2).size());
 
         assertTrue("User1 should be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should be registered", userManager2.isRegistered(user1.getUserName()));
@@ -205,7 +205,7 @@ public class UserManagerTest {
 
         userManager2.logout(user1);
 
-        assertEquals("Only one client location of user1 should exist", 1, clientManager1.getClientLocations(user1).size());
+        assertEquals("Only one client location of user1 should exist", 1, clientManager1.getNodeLocations(user1).size());
 
         assertTrue("User1 should still be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should still be registered", userManager2.isRegistered(user1.getUserName()));
@@ -225,8 +225,8 @@ public class UserManagerTest {
         assertTrue("User1 should still be registered", userManager2.isRegistered(user1.getUserName()));
         assertTrue("User2 should still be registered", userManager3.isRegistered(user2.getUserName()));
 
-        assertEquals("ClientLocations should not be removed", 0, clientManager1.getClientLocations(user1).size());
-        assertEquals("ClientLocations should not be removed", 0, clientManager2.getClientLocations(user1).size());
-        assertEquals("ClientLocations should not be removed", 0, clientManager3.getClientLocations(user2).size());
+        assertEquals("ClientLocations should not be removed", 0, clientManager1.getNodeLocations(user1).size());
+        assertEquals("ClientLocations should not be removed", 0, clientManager2.getNodeLocations(user1).size());
+        assertEquals("ClientLocations should not be removed", 0, clientManager3.getNodeLocations(user2).size());
     }
 }

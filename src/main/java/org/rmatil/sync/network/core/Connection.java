@@ -137,7 +137,7 @@ public class Connection {
             port = Connection.getNextFreePort(port);
         }
 
-        logger.debug("Setting client up at free port " + port);
+        logger.debug("Setting node up at free port " + port);
 
         // see https://github.com/Hive2Hive/Hive2Hive/issues/117
         Bindings bindings = new Bindings().listenAny();
@@ -322,13 +322,13 @@ public class Connection {
                 .awaitUninterruptibly(this.config.getShutdownAnnounceTimeout());
 
         if (! announceSuccessful) {
-            logger.debug("Shutdown announce was not yet completed. Shutting client down now");
+            logger.debug("Shutdown announce was not yet completed. Shutting node down now");
         }
 
         BaseFuture shutdownFuture = this.peerDHT.shutdown();
 
         if (shutdownFuture.isFailed()) {
-            throw new ConnectionException("Failed to shut down client: " + shutdownFuture.failedReason());
+            throw new ConnectionException("Failed to shut down node: " + shutdownFuture.failedReason());
         }
 
         logger.trace("Shutdown of peer succeeded");

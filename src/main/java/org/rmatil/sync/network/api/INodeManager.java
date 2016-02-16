@@ -1,6 +1,6 @@
 package org.rmatil.sync.network.api;
 
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
@@ -29,7 +29,7 @@ public interface INodeManager {
      *
      * @throws InputOutputException If adding failed
      */
-    void addClientLocation(IUser user, ClientLocation location)
+    void addNodeLocation(IUser user, NodeLocation location)
             throws InputOutputException;
 
     /**
@@ -40,31 +40,31 @@ public interface INodeManager {
      *
      * @throws InputOutputException If removing failed
      */
-    void removeClientLocation(IUser user, ClientLocation location)
+    void removeNodeLocation(IUser user, NodeLocation location)
             throws InputOutputException;
 
     /**
      * Gets the list of locations of the given user
      *
-     * @param user The user from which to get all client locations
+     * @param user The user from which to get all node locations
      *
-     * @return The list of client locations
+     * @return The list of node locations
      *
      * @throws InputOutputException If getting failed
      */
-    List<ClientLocation> getClientLocations(IUser user)
+    List<NodeLocation> getNodeLocations(IUser user)
             throws InputOutputException;
 
     /**
      * Gets the list of locations of the given user name
      *
-     * @param username The username from which to get its client locations
+     * @param username The username from which to get its node locations
      *
-     * @return The list of client locations
+     * @return The list of node locations
      *
      * @throws InputOutputException If getting the locations failed
      */
-    List<ClientLocation> getClientLocations(String username)
+    List<NodeLocation> getNodeLocations(String username)
             throws InputOutputException;
 
     /**

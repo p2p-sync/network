@@ -9,7 +9,7 @@ import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.core.Node;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.ClientDevice;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
 
@@ -78,14 +78,14 @@ public class NodeTest extends BaseTest {
 
     @Test
     public void testGetClientManager() {
-        assertNull("NodeManager should be null before starting", nodeIpV6.getClientManager());
+        assertNull("NodeManager should be null before starting", nodeIpV6.getNodeManager());
         assertNull("IdentifierManager should be null before starting", nodeIpV6.getIdentifierManager());
         assertNull("UserManager should be null before starting", nodeIpV6.getUserManager());
 
         boolean succeededV6 = nodeIpV6.start();
 
         assertTrue("Node should be started", succeededV6);
-        assertNotNull("NodeManager should be initialised after starting", nodeIpV6.getClientManager());
+        assertNotNull("NodeManager should be initialised after starting", nodeIpV6.getNodeManager());
         assertNotNull("IdentifierManager should be initialised after starting", nodeIpV6.getIdentifierManager());
         assertNotNull("UserManager should be initialised after starting", nodeIpV6.getUserManager());
     }
@@ -112,7 +112,7 @@ public class NodeTest extends BaseTest {
 
         assertTrue("IPv4_1 client did not succeed to start", succeededV4_1);
 
-        ClientLocation ipV4_1Client = new ClientLocation(UUID.randomUUID(), nodeIpV4_1.getPeerAddress());
+        NodeLocation ipV4_1Client = new NodeLocation(UUID.randomUUID(), nodeIpV4_1.getPeerAddress());
 
         boolean succeededV4 = nodeIpV4_2.start(ipV4_1Client.getIpAddress(), ipV4_1Client.getPort());
         assertTrue("IPv4 2 client did not succeed to start", succeededV4);
@@ -143,8 +143,8 @@ public class NodeTest extends BaseTest {
         assertTrue("Client1 did not succeed to start", c1);
         assertTrue("Client2 did not succeed to start", c2);
 
-        List<ClientLocation> receiver = new ArrayList<>();
-        receiver.add(new ClientLocation(
+        List<NodeLocation> receiver = new ArrayList<>();
+        receiver.add(new NodeLocation(
                 nodeIpV4_2.getClientDeviceId(),
                 nodeIpV4_2.getPeerAddress()
         ));

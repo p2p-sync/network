@@ -23,7 +23,7 @@ public interface INetworkHandler<T> extends Runnable {
     void run();
 
     /**
-     * Sends the request of the network handler to all online peers of the client.
+     * Sends the request of the network handler to all online peers of the node.
      *
      * @throws ConnectionFailedException If the other online clients can not be determined
      */

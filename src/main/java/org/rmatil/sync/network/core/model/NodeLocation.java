@@ -8,10 +8,10 @@ import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * A model which represents a single location of a client
+ * A model which represents a single location of a node
  * from a particular user
  */
-public class ClientLocation implements Serializable {
+public class NodeLocation implements Serializable {
 
     /**
      * The peer address
@@ -19,14 +19,14 @@ public class ClientLocation implements Serializable {
     protected PeerAddress peerAddress;
 
     /**
-     * The uuid of this client device
+     * The uuid of this node device
      */
     protected UUID clientDeviceId;
 
     /**
      * @param peerAddress The peer address to add
      */
-    public ClientLocation(UUID clientDeviceId, PeerAddress peerAddress) {
+    public NodeLocation(UUID clientDeviceId, PeerAddress peerAddress) {
         this.clientDeviceId = clientDeviceId;
         this.peerAddress = peerAddress;
     }
@@ -35,14 +35,14 @@ public class ClientLocation implements Serializable {
      * Returns true if the IP address is using
      * the v4-naming scheme. False otherwise
      *
-     * @return True, if the client uses an IPv4 address to contact
+     * @return True, if the node uses an IPv4 address to contact
      */
     public boolean isIpV4() {
         return this.peerAddress.isIPv4();
     }
 
     /**
-     * Returns the IP address of the client
+     * Returns the IP address of the node
      *
      * @return The IP address
      */
@@ -68,7 +68,7 @@ public class ClientLocation implements Serializable {
 
 
     /**
-     * Returns the port of the client
+     * Returns the port of the node
      *
      * @return The port
      */
@@ -77,7 +77,7 @@ public class ClientLocation implements Serializable {
     }
 
     /**
-     * Returns the UUID of this client device
+     * Returns the UUID of this node device
      *
      * @return The uuid
      */
@@ -114,14 +114,14 @@ public class ClientLocation implements Serializable {
     }
 
     public boolean equals(Object obj) {
-        if (! (obj instanceof ClientLocation)) {
+        if (! (obj instanceof NodeLocation)) {
             return false;
         }
         if (obj == this) {
             return true;
         }
 
-        ClientLocation rhs = (ClientLocation) obj;
+        NodeLocation rhs = (NodeLocation) obj;
         return new EqualsBuilder()
                 // if deriving: appendSuper(super.equals(obj)).
                 .append(this.getIpAddress(), rhs.getIpAddress())

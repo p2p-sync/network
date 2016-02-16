@@ -8,7 +8,7 @@ import org.rmatil.sync.network.core.exception.ConnectionException;
 import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
 import org.slf4j.Logger;
@@ -31,7 +31,7 @@ public class Node implements INode {
 
     protected ObjectDataReplyHandler objectDataReplyHandler;
 
-    protected INodeManager locationManager;
+    protected INodeManager nodeManager;
 
     protected IUserManager userManager;
 
@@ -61,15 +61,15 @@ public class Node implements INode {
             this.connection.connect(bootstrapIpAddress, bootstrapPort);
         }
 
-        logger.info("Successfully started client on address " + this.getPeerAddress().inetAddress().getHostAddress() + ":" + this.config.getPort());
+        logger.info("Successfully started node on address " + this.getPeerAddress().inetAddress().getHostAddress() + ":" + this.config.getPort());
 
         IStorageAdapter dhtStorageAdapter = new DhtStorageAdapter(this.connection.getPeerDHT(), this.config.getCacheTtl());
-        ClientLocation clientLocation = new ClientLocation(
+        NodeLocation nodeLocation = new NodeLocation(
                 this.clientDeviceId,
                 this.connection.getPeerDHT().peerAddress()
         );
 
-        this.locationManager = new NodeManager(
+        this.nodeManager = new NodeManager(
                 dhtStorageAdapter,
                 Config.DEFAULT.getLocationsContentKey(),
                 Config.DEFAULT.getPrivateKeyContentKey(),
@@ -86,8 +86,8 @@ public class Node implements INode {
         );
 
         this.userManager = new UserManager(
-                this.locationManager,
-                clientLocation
+                this.nodeManager,
+                nodeLocation
         );
 
         if (! this.userManager.login(this.user)) {
@@ -110,11 +110,11 @@ public class Node implements INode {
             return true;
         }
 
-        logger.info("Shutting client down");
+        logger.info("Shutting node down");
 
-        // remove the client location
+        // remove the node location
         this.userManager.logout(this.user);
-        // friendly announce the shutdown of this client
+        // friendly announce the shutdown of this node
         try {
             this.connection.close();
         } catch (ConnectionException e) {
@@ -159,8 +159,8 @@ public class Node implements INode {
     }
 
     @Override
-    public INodeManager getClientManager() {
-        return this.locationManager;
+    public INodeManager getNodeManager() {
+        return this.nodeManager;
     }
 
     @Override

@@ -4,7 +4,7 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.rmatil.sync.network.core.model.ClientLocation;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.serialize.ByteSerializer;
 
 import java.io.IOException;
@@ -19,10 +19,10 @@ import static org.junit.Assert.assertThat;
 
 public class ByteSerializerTest {
 
-    protected static List<ClientLocation> locations = new ArrayList<>();
+    protected static List<NodeLocation> locations = new ArrayList<>();
 
-    protected static ClientLocation l1;
-    protected static ClientLocation l2;
+    protected static NodeLocation l1;
+    protected static NodeLocation l2;
 
     @BeforeClass
     public static void before()
@@ -30,8 +30,8 @@ public class ByteSerializerTest {
         PeerAddress peerAddress = new PeerAddress(Number160.ONE, InetAddress.getLocalHost());
         PeerAddress peerAddress2 = new PeerAddress(Number160.ZERO, InetAddress.getLocalHost());
 
-        l1 = new ClientLocation(UUID.randomUUID(), peerAddress);
-        l2 = new ClientLocation(UUID.randomUUID(), peerAddress2);
+        l1 = new NodeLocation(UUID.randomUUID(), peerAddress);
+        l2 = new NodeLocation(UUID.randomUUID(), peerAddress2);
 
         locations.add(l1);
         locations.add(l2);
@@ -42,9 +42,9 @@ public class ByteSerializerTest {
             throws IOException, ClassNotFoundException {
         byte[] bytes = ByteSerializer.toBytes(locations);
 
-        List<ClientLocation> clientLocations = (List<ClientLocation>) ByteSerializer.fromBytes(bytes);
+        List<NodeLocation> nodeLocations = (List<NodeLocation>) ByteSerializer.fromBytes(bytes);
 
-        assertThat("Node locations do not contain location1", clientLocations, hasItems(l1, l2));
+        assertThat("Node locations do not contain location1", nodeLocations, hasItems(l1, l2));
     }
 
 }

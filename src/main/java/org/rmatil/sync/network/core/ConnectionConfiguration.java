@@ -24,13 +24,13 @@ public class ConnectionConfiguration {
 
     /**
      * The maximum timeout to wait for discovery
-     * of another client (in milliseconds)
+     * of another node (in milliseconds)
      */
     protected long peerDiscoveryTimeout;
 
     /**
      * The maximum timeout to wait for bootstrapping
-     * to another client (in milliseconds)
+     * to another node (in milliseconds)
      */
     protected long peerBootstrapTimeout;
 
@@ -53,7 +53,7 @@ public class ConnectionConfiguration {
      * @param cacheTtl                The time to live for elements in the DHT cache (in milliseconds)
      * @param peerDiscoveryTimeout    The maximum timeout for discovering another peer (in milliseconds)
      * @param peerBootstrapTimeout    The maximum timeout to wait for a bootstrap to another peer (in milliseconds)
-     * @param shutdownAnnounceTimeout The maximum timeout to wait for a completed shutdown announce of this client (in milliseconds)
+     * @param shutdownAnnounceTimeout The maximum timeout to wait for a completed shutdown announce of this node (in milliseconds)
      * @param isFirewalled            Whether this peer is behind a firewall and UPnP should be used
      */
     public ConnectionConfiguration(String nodeId, int port, long cacheTtl, long peerDiscoveryTimeout, long peerBootstrapTimeout, long shutdownAnnounceTimeout, boolean isFirewalled) {
