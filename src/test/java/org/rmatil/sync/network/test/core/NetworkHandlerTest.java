@@ -35,7 +35,7 @@ public class NetworkHandlerTest extends BaseTest {
     @BeforeClass
     public static void setUp()
             throws NoSuchAlgorithmException {
-        KeyPairGenerator gen = KeyPairGenerator.getInstance("DSA");
+        KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = gen.generateKeyPair();
         UUID clientDeviceId1 = UUID.randomUUID();
         UUID clientDeviceId2 = UUID.randomUUID();

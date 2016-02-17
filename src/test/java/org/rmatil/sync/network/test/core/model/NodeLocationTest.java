@@ -34,7 +34,7 @@ public class NodeLocationTest {
     @BeforeClass
     public static void setUp()
             throws NoSuchAlgorithmException {
-        KeyPairGenerator gen = KeyPairGenerator.getInstance("DSA");
+        KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = gen.genKeyPair();
 
         IUser user = new User("Weir Doe", "WillBorrow", "Bread", keyPair.getPublic(), keyPair.getPrivate(), new ArrayList<>());

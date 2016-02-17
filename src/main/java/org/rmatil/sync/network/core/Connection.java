@@ -1,10 +1,7 @@
 package org.rmatil.sync.network.core;
 
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import net.tomp2p.connection.Bindings;
-import net.tomp2p.connection.ChannelClientConfiguration;
-import net.tomp2p.connection.ChannelServerConfiguration;
-import net.tomp2p.connection.Ports;
+import net.tomp2p.connection.*;
 import net.tomp2p.dht.PeerBuilderDHT;
 import net.tomp2p.dht.PeerDHT;
 import net.tomp2p.dht.StorageLayer;
@@ -143,15 +140,17 @@ public class Connection {
         Bindings bindings = new Bindings().listenAny();
 
         ChannelServerConfiguration serverConfiguration = PeerBuilder.createDefaultChannelServerConfiguration();
+        serverConfiguration.signatureFactory(new RSASignatureFactory());
         serverConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(MAX_CONCURRENT_CONNECTIONS)));
         serverConfiguration.ports(new Ports(port, port));
 
         ChannelClientConfiguration clientConfiguration = PeerBuilder.createDefaultChannelClientConfiguration();
+        clientConfiguration.signatureFactory(new RSASignatureFactory());
         clientConfiguration.pipelineFilter(new PeerBuilder.EventExecutorGroupFilter(new DefaultEventExecutorGroup(MAX_CONCURRENT_CONNECTIONS)));
 
         PeerBuilder peerBuilder = new PeerBuilder(Number160.createHash(this.config.getNodeId()))
                 .ports(port)
-                .keyPair(keyPair)
+                .keyPair(keyPair) // note, that this enables signing of messages by default: @see Message#isSign()
                 .bindings(bindings)
                 .channelServerConfiguration(serverConfiguration)
                 .channelClientConfiguration(clientConfiguration);
@@ -234,7 +233,7 @@ public class Connection {
                 .ports(bootstrapPort)
                 .start();
 
-        futureDiscover.awaitUninterruptibly(this.config.getPeerDiscoveryTimeout());
+        futureDiscover.awaitUninterruptibly();
 
         if (futureDiscover.isFailed()) {
 

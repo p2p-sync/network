@@ -60,7 +60,7 @@ public class UserManagerTest {
         // restart on each test since the public key is not removed
         // on logout
 
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA");
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         keyPair1 = generator.genKeyPair();
         keyPair2 = generator.genKeyPair();
 

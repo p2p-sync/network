@@ -40,7 +40,7 @@ public class NodeTest extends BaseTest {
     @BeforeClass
     public static void setUp()
             throws NoSuchAlgorithmException {
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA");
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair1 = generator.generateKeyPair();
         KeyPair keyPair2 = generator.generateKeyPair();
 
