@@ -14,6 +14,7 @@ import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -77,7 +78,8 @@ public class NodeTest extends BaseTest {
     }
 
     @Test
-    public void testGetClientManager() {
+    public void testGetClientManager()
+            throws InvalidKeyException {
         assertNull("NodeManager should be null before starting", nodeIpV6.getNodeManager());
         assertNull("IdentifierManager should be null before starting", nodeIpV6.getIdentifierManager());
         assertNull("UserManager should be null before starting", nodeIpV6.getUserManager());
@@ -92,7 +94,7 @@ public class NodeTest extends BaseTest {
 
     @Test
     public void testBootstrapPeer()
-            throws InterruptedException {
+            throws InterruptedException, InvalidKeyException {
         boolean succeededV6 = nodeIpV6.start();
         boolean succeededV4_1 = nodeIpV4_1.start();
         boolean succeededV4_2 = nodeIpV4_2.start();
@@ -104,7 +106,7 @@ public class NodeTest extends BaseTest {
 
     @Test
     public void testStartPeer()
-            throws InterruptedException {
+            throws InterruptedException, InvalidKeyException {
         // must be on different ports
         assertFalse("Node should not be connected before started", nodeIpV4_1.isConnected());
         boolean succeededV4_1 = nodeIpV4_1.start();
@@ -122,7 +124,7 @@ public class NodeTest extends BaseTest {
 
     @Test
     public void testSendDirect()
-            throws InterruptedException, IOException, ClassNotFoundException {
+            throws InterruptedException, IOException, ClassNotFoundException, InvalidKeyException {
 
         UUID exchangeId = UUID.randomUUID();
 

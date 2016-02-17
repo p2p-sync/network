@@ -14,6 +14,7 @@ import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.InvalidKeyException;
 import java.util.UUID;
 
 
@@ -45,14 +46,14 @@ public class Node implements INode {
 
     @Override
     public boolean start()
-            throws ConnectionException {
+            throws ConnectionException, InvalidKeyException {
         return this.start(null, null);
     }
 
 
     @Override
     public boolean start(String bootstrapIpAddress, Integer bootstrapPort)
-            throws ConnectionException, ConnectionFailedException {
+            throws ConnectionException, ConnectionFailedException, InvalidKeyException {
 
         this.connection = new Connection(this.config, this.objectDataReplyHandler);
         this.connection.open(this.user.getKeyPair());

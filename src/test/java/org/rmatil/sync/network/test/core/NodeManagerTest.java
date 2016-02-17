@@ -52,7 +52,7 @@ public class NodeManagerTest {
 
     @BeforeClass
     public static void setUp()
-            throws NoSuchAlgorithmException, IOException {
+            throws NoSuchAlgorithmException, IOException, InvalidKeyException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         keyPair1 = generator.genKeyPair();
         keyPair2 = generator.genKeyPair();

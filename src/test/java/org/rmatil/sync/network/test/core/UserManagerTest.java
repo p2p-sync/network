@@ -18,6 +18,7 @@ import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -56,7 +57,7 @@ public class UserManagerTest {
 
     @Before
     public void setUp()
-            throws NoSuchAlgorithmException, IOException {
+            throws NoSuchAlgorithmException, IOException, InvalidKeyException {
         // restart on each test since the public key is not removed
         // on logout
 

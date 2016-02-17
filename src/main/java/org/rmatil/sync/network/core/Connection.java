@@ -23,7 +23,10 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 
 /**
  * Use this class to open resp. close connections between
@@ -122,9 +125,23 @@ public class Connection {
      * @param keyPair The keypair to use for domain protected values. Note that this must be the same for all clients of the same user
      *
      * @throws ConnectionException If no free port could have been allocated to start this node or another error occurred during start up
+     * @throws InvalidKeyException If the given keypair does not have a RSA public and private key
      */
     public void open(KeyPair keyPair)
-            throws ConnectionException {
+            throws ConnectionException, InvalidKeyException {
+
+        if (null == keyPair || null == keyPair.getPrivate() || null == keyPair.getPublic()) {
+            throw new InvalidKeyException("A RSA KeyPair must be provided");
+        }
+
+        if (! (keyPair.getPublic() instanceof RSAPublicKey)) {
+            throw new InvalidKeyException("The public key must be a RSA public key");
+        }
+
+        if (! (keyPair.getPrivate() instanceof RSAPrivateKey)) {
+            throw new InvalidKeyException("The private key must be a RSA private key");
+        }
+
         int port = this.config.getPort();
 
         if (! Connection.isPortAvailable(port)) {

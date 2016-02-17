@@ -7,6 +7,7 @@ import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 
+import java.security.InvalidKeyException;
 import java.util.UUID;
 
 /**
@@ -20,9 +21,10 @@ public interface INode {
      * @return True, if starting as bootstrap peer succeeded, false otherwise
      *
      * @throws ConnectionException If creating this node failed
+     * @throws InvalidKeyException If the keypair of the user is not a RSA keypair or the public resp. private key is missing
      */
     boolean start()
-            throws ConnectionException;
+            throws ConnectionException, InvalidKeyException;
 
     /**
      * Start the node and let it connect to an online peer
@@ -35,9 +37,10 @@ public interface INode {
      *
      * @throws ConnectionException       If creating this node failed
      * @throws ConnectionFailedException If connecting to the other peer failed
+     * @throws InvalidKeyException       If the keypair of the user is not a RSA keypair or the public resp. private key is missing
      */
     boolean start(String bootstrapIpAddress, Integer bootstrapPort)
-            throws ConnectionException, ConnectionFailedException;
+            throws ConnectionException, ConnectionFailedException, InvalidKeyException;
 
     /**
      * Shuts down the node. Blocks until success or failure.

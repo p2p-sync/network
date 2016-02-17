@@ -11,6 +11,7 @@ import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
 
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -34,7 +35,7 @@ public class NetworkHandlerTest extends BaseTest {
 
     @BeforeClass
     public static void setUp()
-            throws NoSuchAlgorithmException {
+            throws NoSuchAlgorithmException, InvalidKeyException {
         KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = gen.generateKeyPair();
         UUID clientDeviceId1 = UUID.randomUUID();

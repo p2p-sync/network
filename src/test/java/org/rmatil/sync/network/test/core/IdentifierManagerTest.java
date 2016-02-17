@@ -17,6 +17,7 @@ import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -61,7 +62,7 @@ public class IdentifierManagerTest {
 
     @BeforeClass
     public static void setUp()
-            throws NoSuchAlgorithmException, IOException {
+            throws NoSuchAlgorithmException, IOException, InvalidKeyException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         keyPair1 = generator.genKeyPair();
         keyPair2 = generator.genKeyPair();

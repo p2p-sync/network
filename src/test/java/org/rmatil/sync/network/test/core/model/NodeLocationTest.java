@@ -10,6 +10,7 @@ import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
 
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -33,7 +34,7 @@ public class NodeLocationTest {
 
     @BeforeClass
     public static void setUp()
-            throws NoSuchAlgorithmException {
+            throws NoSuchAlgorithmException, InvalidKeyException {
         KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = gen.genKeyPair();
 
