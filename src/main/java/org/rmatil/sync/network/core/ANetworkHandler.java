@@ -79,11 +79,13 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
         this.hasStartedToNotify = true;
 
         List<NodeLocation> nodeLocations = request.getReceiverAddresses();
+        boolean ownLocationPresent = false;
 
         // offer file
         for (NodeLocation entry : nodeLocations) {
             if (entry.getPeerAddress().equals(this.node.getPeerAddress())) {
                 logger.debug("Ignoring receiver address " + entry.getIpAddress() + ":" + entry.getPort() + " since it is the own node's address");
+                ownLocationPresent = true;
                 continue;
             }
 
@@ -117,6 +119,20 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
                 }
             } catch (InterruptedException e) {
                 logger.error("Failed to send request to node " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Got interrupted while waiting for completion. Message: " + e.getMessage());
+            }
+        }
+
+        if (! ownLocationPresent) {
+            try {
+                this.node.getNodeManager().addNodeLocation(
+                        this.node.getUser(),
+                        new NodeLocation(
+                                this.node.getClientDeviceId(),
+                                this.node.getPeerAddress()
+                        )
+                );
+            } catch (InputOutputException e) {
+                logger.error("Failed to re-add non present node location for client " + this.node.getClientDeviceId() + " (" + this.node.getPeerAddress().inetAddress().getHostAddress() + ":" + this.node.getPeerAddress().tcpPort() + ")");
             }
         }
 
