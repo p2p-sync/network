@@ -84,16 +84,20 @@ public class NodeManager implements INodeManager {
         logger.trace("Adding location on location key " + dhtPathElement.getLocationKey() + ", using content key " + dhtPathElement.getContentKey() + " and domain key " + dhtPathElement.getDomainKey());
 
         List<NodeLocation> locations = this.getNodeLocations(user);
-        locations.add(location);
 
-        byte[] bytes;
-        try {
-            bytes = ByteSerializer.toBytes(locations);
-        } catch (IOException e) {
-            throw new InputOutputException(e);
+        // only add the location if not yet contained
+        if (! locations.contains(location)) {
+            locations.add(location);
+
+            byte[] bytes;
+            try {
+                bytes = ByteSerializer.toBytes(locations);
+            } catch (IOException e) {
+                throw new InputOutputException(e);
+            }
+
+            this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
         }
-
-        this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
 
         user.getNodeLocations().clear();
         user.getNodeLocations().addAll(locations);
