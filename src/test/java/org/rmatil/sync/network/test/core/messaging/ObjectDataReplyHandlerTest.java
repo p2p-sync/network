@@ -14,7 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class ObjectDataReplyHandlerTest {
@@ -29,7 +30,7 @@ public class ObjectDataReplyHandlerTest {
     public static void setUp() {
         objectDataReplyHandler = new ObjectDataReplyHandler(null);
 
-        responseCallback = new DummyNetworkHandler(null, null);
+        responseCallback = new DummyNetworkHandler(null, null, null);
         responseCallbackHandlers.put(responseCallbackUUID, responseCallback);
 
         requestCallbackHandlers.put(DummyRequest.class, DummyRequestHandler.class);

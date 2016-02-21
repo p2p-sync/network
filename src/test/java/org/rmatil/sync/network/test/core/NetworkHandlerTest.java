@@ -8,6 +8,7 @@ import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.core.Node;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
+import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
 
@@ -16,6 +17,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -87,9 +89,48 @@ public class NetworkHandlerTest extends BaseTest {
     @Test
     public void testNetworkHandler()
             throws ExecutionException, InterruptedException {
+        List<NodeLocation> nodeLocations = new ArrayList<>();
+        nodeLocations.add(new NodeLocation(
+                client2.getClientDeviceId(),
+                client2.getPeerAddress()
+        ));
+
         DummyNetworkHandler networkHandler = new DummyNetworkHandler(
                 client1,
-                clientManager1
+                clientManager1,
+                nodeLocations
+        );
+
+        boolean result = networkHandler.isCompleted();
+        assertFalse("Result should be false", result);
+        assertEquals("Progress should be 0", 0, networkHandler.getProgress());
+
+        // this is normally invoked by an ExecutorService
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(networkHandler);
+
+        // wait until all notified clients have responded
+        networkHandler.await();
+
+        assertTrue("NetworkHandler should be completed once all clients have responded", networkHandler.isCompleted());
+        assertEquals("Progress should be 100%", 100, networkHandler.getProgress());
+
+        assertTrue("Final result should be true", networkHandler.getResult());
+    }
+
+    @Test
+    public void testNetworkHandlerWithOwnAddress()
+            throws InterruptedException {
+        List<NodeLocation> nodeLocations = new ArrayList<>();
+        nodeLocations.add(new NodeLocation(
+                client1.getClientDeviceId(),
+                client1.getPeerAddress()
+        ));
+
+        DummyNetworkHandler networkHandler = new DummyNetworkHandler(
+                client1,
+                clientManager1,
+                nodeLocations
         );
 
         boolean result = networkHandler.isCompleted();
