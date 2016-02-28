@@ -1,33 +1,31 @@
-package org.rmatil.sync.network.core.security.encryption;
+package org.rmatil.sync.network.core.security.encryption.symmetric.aes;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.rmatil.sync.network.core.exception.SecurityException;
 import org.rmatil.sync.network.core.security.SaltFactory;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 
-/**
- * Creates a key from a particular password using the PBKDF2WithHmacSHA1 key derivative function.
- *
- * @see <a href="https://tools.ietf.org/html/rfc2898#section-5.2">RFC-2898: PBKDF2</a>
- */
-public abstract class Pbkdf2Factory {
+public class AesKeyFactory {
 
     protected static final String KEY_DERIVATIVE_FUNCTION = "PBKDF2WithHmacSHA1";
     protected static final String SECURITY_PROVIDER       = BouncyCastleProvider.PROVIDER_NAME;
 
     protected static final int SALT_LENGTH     = 16;
     protected static final int HASH_ITERATIONS = 10000;
-    protected static final int KEY_LENGTH_256  = 256;
     protected static final int KEY_LENGTH_128  = 128;
+    protected static final int KEY_LENGTH_256  = 256;
 
     /**
      * Generates a secret key of the given password.
@@ -107,4 +105,37 @@ public abstract class Pbkdf2Factory {
         }
     }
 
+    /**
+     * Generates an AES key. If UCE is enabled ({@link AesEncryption#isUceEnabled()})
+     * then keys with length of 256 bits are generated. Otherwise, the key
+     * size is limited to 128 bits.
+     *
+     * @return The generated AES key
+     *
+     * @throws SecurityException If an error occurs during generating
+     */
+    public static SecretKey generateSecretKey()
+            throws SecurityException {
+        if (null == Security.getProvider(BouncyCastleProvider.PROVIDER_NAME)) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
+
+        try {
+            KeyGenerator kg = KeyGenerator.getInstance("AES", BouncyCastleProvider.PROVIDER_NAME);
+
+            if (AesEncryption.isUceEnabled()) {
+                // keys longer than 128 bits are allowed
+                kg.init(AesKeyFactory.KEY_LENGTH_256, new SecureRandom());
+            } else {
+                // only keys limited to 128 bits are allowed
+                kg.init(AesKeyFactory.KEY_LENGTH_128, new SecureRandom());
+            }
+
+            byte[] encoded = kg.generateKey().getEncoded();
+
+            return new SecretKeySpec(encoded, "AES");
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new SecurityException(e);
+        }
+    }
 }
