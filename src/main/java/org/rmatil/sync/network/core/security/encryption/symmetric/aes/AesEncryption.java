@@ -19,6 +19,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Security;
 
@@ -52,6 +53,27 @@ public final class AesEncryption extends ASymmetricEncryption {
     }
 
     /**
+     * Returns true, if the <i>Unrestricted Cryptography Extension</i> (UCE)
+     * is available on this system. False otherwise.
+     *
+     * If UCE is not enabled, a generated AES key will be limited
+     * in its length to 128 bits.
+     *
+     * @return True, if UCE is enabled
+     *
+     * @throws SecurityException If checking fails
+     */
+    public static boolean isUceEnabled()
+            throws SecurityException {
+        // getMaxAllowedKeyLength returns max int value if Unrestricted Cryptography Extension is enabled
+        try {
+            return Cipher.getMaxAllowedKeyLength("AES") == Integer.MAX_VALUE;
+        } catch (NoSuchAlgorithmException e) {
+            throw new SecurityException(e);
+        }
+    }
+
+    /**
      * Initializes a new AES encryption utility. Adds
      * Bouncy Castle as security provider if not set yet.
      */
@@ -64,6 +86,13 @@ public final class AesEncryption extends ASymmetricEncryption {
     @Override
     protected byte[] process(EncryptionMode encryptionMode, SecretKey symmetricKey, byte[] data)
             throws GeneralSecurityException, InvalidCipherTextException {
+        return this.process(encryptionMode, symmetricKey, null, data);
+    }
+
+
+    @Override
+    protected byte[] process(EncryptionMode encryptionMode, SecretKey symmetricKey, byte[] initVector, byte[] data)
+            throws GeneralSecurityException, InvalidCipherTextException {
 
         boolean isEncrypting = false;
         if (EncryptionMode.ENCRYPT == encryptionMode) {
@@ -72,10 +101,9 @@ public final class AesEncryption extends ASymmetricEncryption {
 
         SecretKeySpec keySpec = new SecretKeySpec(symmetricKey.getEncoded(), "AES");
 
-        byte[] initVector;
-        if (EncryptionMode.ENCRYPT == encryptionMode) {
+        if (EncryptionMode.ENCRYPT == encryptionMode && null == initVector) {
             initVector = generateInitializationVector();
-        } else {
+        } else if (EncryptionMode.DECRYPT == encryptionMode) {
             // apparently, there is no need to keep the iv secret
             // init vector is prepended to data
             initVector = new byte[INIT_VECTOR_LENGTH];
@@ -88,15 +116,12 @@ public final class AesEncryption extends ASymmetricEncryption {
 
         byte[] processedData;
 
-        // getMaxAllowedKeyLength returns max int value if Unrestricted Cryptography Extenstion is enabled
-        boolean uceIsEnabled = Cipher.getMaxAllowedKeyLength("AES") == Integer.MAX_VALUE;
-
         // in bits
         int keySize = symmetricKey.getEncoded().length * 8;
-        if (! uceIsEnabled) {
+        if (! AesEncryption.isUceEnabled()) {
 
             if (keySize > 128) {
-                throw new SecurityException("Max. allowed keysize is 128 bit if UCE (Unrestricted Cryptography Extension) is not enabled");
+                throw new SecurityException("Max. allowed keySize is 128 bit if UCE (Unrestricted Cryptography Extension) is not enabled");
             }
 
             logger.info("Using weak AES encryption for encryption " + isEncrypting + ". Key size was: " + keySize + " bits and max allowed key length was: " + Cipher.getMaxAllowedKeyLength("AES"));

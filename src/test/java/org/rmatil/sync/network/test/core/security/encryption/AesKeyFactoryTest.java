@@ -2,17 +2,18 @@ package org.rmatil.sync.network.test.core.security.encryption;
 
 import org.junit.Test;
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesKeyFactory;
-import org.rmatil.sync.network.core.security.encryption.symmetric.aes.Pbkdf2Factory;
 
 import javax.crypto.SecretKey;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertThat;
 
 public class AesKeyFactoryTest {
 
     protected static final String PASSWORD = "ThisIsSafeDoNotChange";
-    protected static final String SALT = "VerySecureSalt";
+    protected static final String SALT     = "VerySecureSalt";
 
     @Test
     public void testGenerateKey() {

@@ -139,7 +139,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     }
 
     @Override
-    public Object reply(PeerAddress sender, Object request)
+    public IResponse reply(PeerAddress sender, Object request)
             throws Exception {
 
         // forward the request to the correct data reply instance
