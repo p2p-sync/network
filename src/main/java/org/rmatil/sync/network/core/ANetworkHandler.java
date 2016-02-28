@@ -91,7 +91,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
 
             logger.debug("Sending request " + request.getExchangeId() + " to node " + entry.getIpAddress() + ":" + entry.getPort() + ". Timestamp: " + System.currentTimeMillis());
             try {
-                FutureDirect futureDirect = this.node.sendDirect(entry.getPeerAddress(), request);
+                FutureDirect futureDirect = this.node.sendDirect(entry, request);
                 FutureDirectListener futureDirectListener = new FutureDirectListener();
                 futureDirect.addListener(futureDirectListener);
 
@@ -113,7 +113,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
             } catch (ObjectSendFailedException e) {
                 logger.error("Failed to send request to node " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Removing this node from connected node locations. Message: " + e.getMessage());
                 try {
-                    this.node.getNodeManager().removeNodeLocation(this.node.getUser(), entry);
+                    this.node.getNodeManager().removeNodeLocation(entry);
                 } catch (InputOutputException e1) {
                     logger.error("Failed to remove node location " + entry);
                 }
@@ -125,8 +125,8 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
         if (! ownLocationPresent) {
             try {
                 this.node.getNodeManager().addNodeLocation(
-                        this.node.getUser(),
                         new NodeLocation(
+                                this.node.getUser().getUserName(),
                                 this.node.getClientDeviceId(),
                                 this.node.getPeerAddress()
                         )

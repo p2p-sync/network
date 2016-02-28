@@ -18,11 +18,9 @@ public class UserManager implements IUserManager {
     private static final Logger logger = LoggerFactory.getLogger(UserManager.class);
 
     protected INodeManager nodeManager;
-    protected NodeLocation nodeLocation;
 
-    public UserManager(INodeManager nodeManager, NodeLocation nodeLocation) {
+    public UserManager(INodeManager nodeManager) {
         this.nodeManager = nodeManager;
-        this.nodeLocation = nodeLocation;
     }
 
     @Override
@@ -37,9 +35,9 @@ public class UserManager implements IUserManager {
     }
 
     @Override
-    public boolean login(IUser user) {
+    public boolean login(IUser user, NodeLocation nodeLocation) {
         try {
-            this.nodeManager.addNodeLocation(user, this.nodeLocation);
+            this.nodeManager.addNodeLocation(nodeLocation);
             this.nodeManager.addPrivateKey(user);
             this.nodeManager.addPublicKey(user);
             this.nodeManager.addSalt(user);
@@ -52,9 +50,9 @@ public class UserManager implements IUserManager {
     }
 
     @Override
-    public boolean logout(IUser user) {
+    public boolean logout(IUser user, NodeLocation nodeLocation) {
         try {
-            this.nodeManager.removeNodeLocation(user, this.nodeLocation);
+            this.nodeManager.removeNodeLocation(nodeLocation);
         } catch (InputOutputException e) {
             logger.error("Failed to remove node location during logout. Message: " + e.getMessage());
             return false;

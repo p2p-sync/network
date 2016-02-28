@@ -14,6 +14,11 @@ import java.util.UUID;
 public class NodeLocation implements Serializable {
 
     /**
+     * The user to which this node belongs to
+     */
+    protected String username;
+
+    /**
      * The peer address
      */
     protected PeerAddress peerAddress;
@@ -24,9 +29,12 @@ public class NodeLocation implements Serializable {
     protected UUID clientDeviceId;
 
     /**
-     * @param peerAddress The peer address to add
+     * @param username       The username to which this location belongs
+     * @param clientDeviceId The device id of this node
+     * @param peerAddress    The actual address of this node
      */
-    public NodeLocation(UUID clientDeviceId, PeerAddress peerAddress) {
+    public NodeLocation(String username, UUID clientDeviceId, PeerAddress peerAddress) {
+        this.username = username;
         this.clientDeviceId = clientDeviceId;
         this.peerAddress = peerAddress;
     }
@@ -66,6 +74,15 @@ public class NodeLocation implements Serializable {
         return ipAddress;
     }
 
+    /**
+     * Returns the name of the user to which
+     * this node belongs
+     *
+     * @return The name of the user
+     */
+    public String getUsername() {
+        return username;
+    }
 
     /**
      * Returns the port of the node
@@ -105,12 +122,13 @@ public class NodeLocation implements Serializable {
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 31). // two randomly chosen prime numbers
+        return new HashCodeBuilder(17, 31) // two randomly chosen prime numbers
                 // if deriving: appendSuper(super.hashCode()).
-                        append(this.getIpAddress()).
-                        append(this.getPort()).
-                        append(this.getClientDeviceId()).
-                        toHashCode();
+                        .append(this.getUsername())
+                        .append(this.getIpAddress())
+                        .append(this.getPort())
+                        .append(this.getClientDeviceId())
+                        .toHashCode();
     }
 
     public boolean equals(Object obj) {
@@ -124,6 +142,7 @@ public class NodeLocation implements Serializable {
         NodeLocation rhs = (NodeLocation) obj;
         return new EqualsBuilder()
                 // if deriving: appendSuper(super.equals(obj)).
+                .append(this.getUsername(), rhs.getUsername())
                 .append(this.getIpAddress(), rhs.getIpAddress())
                 .append(this.getPort(), rhs.getPort())
                 .append(this.getClientDeviceId(), rhs.getClientDeviceId())

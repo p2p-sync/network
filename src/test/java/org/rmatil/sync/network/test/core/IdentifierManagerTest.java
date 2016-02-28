@@ -87,8 +87,8 @@ public class IdentifierManagerTest {
         con3.connect(con1.getPeerDHT().peerAddress().inetAddress().getHostAddress(), con1.getPeerDHT().peerAddress().tcpPort());
         peer3 = con3.getPeerDHT();
 
-        l1 = new NodeLocation(UUID.randomUUID(), peer1.peerAddress());
-        l2 = new NodeLocation(UUID.randomUUID(), peer2.peerAddress());
+        l1 = new NodeLocation(user1.getUserName(), UUID.randomUUID(), peer1.peerAddress());
+        l2 = new NodeLocation(user2.getUserName(), UUID.randomUUID(), peer2.peerAddress());
 
 
         dhtStorageAdapter1 = new DhtStorageAdapter(peer1);

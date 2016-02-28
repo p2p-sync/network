@@ -22,37 +22,23 @@ public interface INodeManager {
     IStorageAdapter getStorageAdapter();
 
     /**
-     * Adds a new location to the locations of the given user
+     * Adds a new location to the locations of the given user.
      *
-     * @param user     The user to which the location is added. Must have the same public key as the peer of this manager
      * @param location The location to add
      *
      * @throws InputOutputException If adding failed
      */
-    void addNodeLocation(IUser user, NodeLocation location)
+    void addNodeLocation(NodeLocation location)
             throws InputOutputException;
 
     /**
      * Removes the given location from the list of locations
      *
-     * @param user     The user from which the location should be removed. Must have the same public key as the peer of this manager
      * @param location The location to remove
      *
      * @throws InputOutputException If removing failed
      */
-    void removeNodeLocation(IUser user, NodeLocation location)
-            throws InputOutputException;
-
-    /**
-     * Gets the list of locations of the given user
-     *
-     * @param user The user from which to get all node locations
-     *
-     * @return The list of node locations
-     *
-     * @throws InputOutputException If getting failed
-     */
-    List<NodeLocation> getNodeLocations(IUser user)
+    void removeNodeLocation(NodeLocation location)
             throws InputOutputException;
 
     /**

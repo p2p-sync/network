@@ -73,17 +73,17 @@ public class NodeManager implements INodeManager {
     }
 
     @Override
-    public void addNodeLocation(IUser user, NodeLocation location)
+    public void addNodeLocation(NodeLocation location)
             throws InputOutputException {
         DhtPathElement dhtPathElement = new DhtPathElement(
-                user.getUserName(),
+                location.getUsername(),
                 this.locationContentKey,
                 this.domainKey
         );
 
         logger.trace("Adding location on location key " + dhtPathElement.getLocationKey() + ", using content key " + dhtPathElement.getContentKey() + " and domain key " + dhtPathElement.getDomainKey());
 
-        List<NodeLocation> locations = this.getNodeLocations(user);
+        List<NodeLocation> locations = this.getNodeLocations(location.getUsername());
 
         // only add the location if not yet contained
         if (! locations.contains(location)) {
@@ -98,22 +98,19 @@ public class NodeManager implements INodeManager {
 
             this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
         }
-
-        user.getNodeLocations().clear();
-        user.getNodeLocations().addAll(locations);
     }
 
     @Override
-    public void removeNodeLocation(IUser user, NodeLocation location)
+    public void removeNodeLocation(NodeLocation location)
             throws InputOutputException {
         // private key must be used to access for write
         DhtPathElement dhtPathElement = new DhtPathElement(
-                user.getUserName(),
+                location.getUsername(),
                 this.locationContentKey,
                 this.domainKey
         );
 
-        List<NodeLocation> locations = this.getNodeLocations(user);
+        List<NodeLocation> locations = this.getNodeLocations(location.getUsername());
         locations.remove(location);
 
         byte[] bytes;
@@ -124,21 +121,6 @@ public class NodeManager implements INodeManager {
         }
 
         this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
-
-        user.getNodeLocations().clear();
-        user.getNodeLocations().addAll(locations);
-    }
-
-    @Override
-    public List<NodeLocation> getNodeLocations(IUser user)
-            throws InputOutputException {
-
-        List<NodeLocation> locations = this.getNodeLocations(user.getUserName());
-
-        user.getNodeLocations().clear();
-        user.getNodeLocations().addAll(locations);
-
-        return locations;
     }
 
     @Override

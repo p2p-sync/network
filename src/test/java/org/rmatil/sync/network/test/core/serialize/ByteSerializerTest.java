@@ -30,8 +30,8 @@ public class ByteSerializerTest {
         PeerAddress peerAddress = new PeerAddress(Number160.ONE, InetAddress.getLocalHost());
         PeerAddress peerAddress2 = new PeerAddress(Number160.ZERO, InetAddress.getLocalHost());
 
-        l1 = new NodeLocation(UUID.randomUUID(), peerAddress);
-        l2 = new NodeLocation(UUID.randomUUID(), peerAddress2);
+        l1 = new NodeLocation("user1", UUID.randomUUID(), peerAddress);
+        l2 = new NodeLocation("user2", UUID.randomUUID(), peerAddress2);
 
         locations.add(l1);
         locations.add(l2);

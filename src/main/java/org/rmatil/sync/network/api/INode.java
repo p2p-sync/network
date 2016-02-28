@@ -6,6 +6,7 @@ import org.rmatil.sync.network.core.exception.ConnectionException;
 import org.rmatil.sync.network.core.exception.ConnectionFailedException;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
+import org.rmatil.sync.network.core.model.NodeLocation;
 
 import java.security.InvalidKeyException;
 import java.util.UUID;
@@ -120,14 +121,14 @@ public interface INode {
      * Sends the given object to the specified peer address.
      * Note, that you still have to call {@link FutureDirect#await()} on it.
      *
-     * @param receiverAddress The address of the node to which the object should be sent
-     * @param dataToSend      The data to send to the node
+     * @param receiverAddress The location of the node to which the object should be sent
+     * @param data            The data to send to the node
      *
      * @return The Future. Note, that you have to await until this future is complete
      *
      * @throws ObjectSendFailedException If sending the object to the node failed
      */
-    FutureDirect sendDirect(PeerAddress receiverAddress, Object dataToSend)
+    FutureDirect sendDirect(NodeLocation receiverAddress, Object data)
             throws ObjectSendFailedException;
 
 }

@@ -32,13 +32,15 @@ public class NodeLocationTest {
     protected static UUID clientId1 = UUID.randomUUID();
     protected static UUID clientId2 = UUID.randomUUID();
 
+    protected static IUser user;
+
     @BeforeClass
     public static void setUp()
             throws NoSuchAlgorithmException, InvalidKeyException {
         KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
         KeyPair keyPair = gen.genKeyPair();
 
-        IUser user = new User("Weir Doe", "WillBorrow", "Bread", keyPair.getPublic(), keyPair.getPrivate(), new ArrayList<>());
+        user = new User("Weir Doe", "WillBorrow", "Bread", keyPair.getPublic(), keyPair.getPrivate(), new ArrayList<>());
         clientIpV4 = new Node(BaseTest.getTestConfig1(), user, clientId1);
         clientIpV6 = new Node(BaseTest.getTestConfig2(), user, clientId2);
 
@@ -56,11 +58,13 @@ public class NodeLocationTest {
     @Test
     public void testClientLocation() {
         NodeLocation nodeLocationIpV4 = new NodeLocation(
+                user.getUserName(),
                 clientId1,
                 clientIpV4.getPeerAddress()
         );
 
         NodeLocation nodeLocationIpV6 = new NodeLocation(
+                user.getUserName(),
                 clientId2,
                 clientIpV6.getPeerAddress()
         );

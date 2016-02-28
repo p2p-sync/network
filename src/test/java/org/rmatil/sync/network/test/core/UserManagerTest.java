@@ -40,9 +40,9 @@ public class UserManagerTest {
     protected static KeyPair keyPair1;
     protected static KeyPair keyPair2;
 
-    protected static INodeManager clientManager1;
-    protected static INodeManager clientManager2;
-    protected static INodeManager clientManager3;
+    protected static INodeManager nodeManager1;
+    protected static INodeManager nodeManager2;
+    protected static INodeManager nodeManager3;
 
     protected static IUser        user1;
     protected static IUser        user2;
@@ -85,15 +85,15 @@ public class UserManagerTest {
         con3.connect(con1.getPeerDHT().peerAddress().inetAddress().getHostAddress(), con1.getPeerDHT().peerAddress().tcpPort());
         peer3 = con3.getPeerDHT();
 
-        l1 = new NodeLocation(UUID.randomUUID(), peer1.peerAddress());
-        l2 = new NodeLocation(UUID.randomUUID(), peer2.peerAddress());
-        l3 = new NodeLocation(UUID.randomUUID(), peer3.peerAddress());
+        l1 = new NodeLocation(user1.getUserName(), UUID.randomUUID(), peer1.peerAddress());
+        l2 = new NodeLocation(user1.getUserName(), UUID.randomUUID(), peer2.peerAddress());
+        l3 = new NodeLocation(user2.getUserName(), UUID.randomUUID(), peer3.peerAddress());
 
         dhtStorageAdapter1 = new DhtStorageAdapter(peer1);
         dhtStorageAdapter2 = new DhtStorageAdapter(peer2);
         dhtStorageAdapter3 = new DhtStorageAdapter(peer3);
 
-        clientManager1 = new NodeManager(
+        nodeManager1 = new NodeManager(
                 dhtStorageAdapter1,
                 Config.DEFAULT.getLocationsContentKey(),
                 Config.DEFAULT.getPrivateKeyContentKey(),
@@ -102,7 +102,7 @@ public class UserManagerTest {
                 Config.DEFAULT.getDomainKey()
         );
 
-        clientManager2 = new NodeManager(
+        nodeManager2 = new NodeManager(
                 dhtStorageAdapter2,
                 Config.DEFAULT.getLocationsContentKey(),
                 Config.DEFAULT.getPrivateKeyContentKey(),
@@ -110,7 +110,7 @@ public class UserManagerTest {
                 Config.DEFAULT.getSaltContentKey(),
                 Config.DEFAULT.getDomainKey()
         );
-        clientManager3 = new NodeManager(
+        nodeManager3 = new NodeManager(
                 dhtStorageAdapter3,
                 Config.DEFAULT.getLocationsContentKey(),
                 Config.DEFAULT.getPrivateKeyContentKey(),
@@ -119,20 +119,11 @@ public class UserManagerTest {
                 Config.DEFAULT.getDomainKey()
         );
 
-        userManager1 = new UserManager(
-                clientManager1,
-                l1
-        );
+        userManager1 = new UserManager(nodeManager1);
 
-        userManager2 = new UserManager(
-                clientManager2,
-                l2
-        );
+        userManager2 = new UserManager(nodeManager2);
 
-        userManager3 = new UserManager(
-                clientManager3,
-                l3
-        );
+        userManager3 = new UserManager(nodeManager3);
 
     }
 
@@ -155,13 +146,13 @@ public class UserManagerTest {
         assertFalse("User1 should not yet be registered", userManager2.isRegistered(user1.getUserName()));
         assertFalse("User2 should not yet be registered", userManager3.isRegistered(user2.getUserName()));
 
-        clientManager1.addPublicKey(user1);
+        nodeManager1.addPublicKey(user1);
 
         assertTrue("User1 should be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should be registered", userManager2.isRegistered(user1.getUserName()));
         assertFalse("User2 should not yet be registered", userManager3.isRegistered(user2.getUserName()));
 
-        clientManager3.addPublicKey(user2);
+        nodeManager3.addPublicKey(user2);
 
         assertTrue("User1 should be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should be registered", userManager2.isRegistered(user1.getUserName()));
@@ -175,59 +166,59 @@ public class UserManagerTest {
         assertFalse("User1 should not yet be registered", userManager2.isRegistered(user1.getUserName()));
         assertFalse("User2 should not yet be registered", userManager3.isRegistered(user2.getUserName()));
 
-        userManager1.login(user1);
+        userManager1.login(user1, l1);
 
         assertTrue("User1 should be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should be registered", userManager2.isRegistered(user1.getUserName()));
         assertFalse("User2 should not yet be registered", userManager3.isRegistered(user2.getUserName()));
 
         // add the 2nd client location to user1 too
-        userManager2.login(user1);
+        userManager2.login(user1, l2);
 
         assertTrue("User1 should be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should be registered", userManager2.isRegistered(user1.getUserName()));
         assertFalse("User2 should not yet be registered", userManager3.isRegistered(user2.getUserName()));
 
-        userManager3.login(user2);
+        userManager3.login(user2, l3);
 
         assertTrue("User1 should be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should be registered", userManager2.isRegistered(user1.getUserName()));
-        assertTrue("User2 should not yet be registered", userManager3.isRegistered(user2.getUserName()));
+        assertTrue("User2 should be registered", userManager3.isRegistered(user2.getUserName()));
 
         // this should not affect any client location since
         // the user1's client does not have write access
-        userManager1.logout(user2);
+        userManager1.logout(user2, l3);
 
-        assertEquals("ClientLocations should not be removed", 1, clientManager3.getNodeLocations(user2).size());
+        assertEquals("ClientLocations should not be removed", 1, nodeManager3.getNodeLocations(user2.getUserName()).size());
 
         assertTrue("User1 should be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should be registered", userManager2.isRegistered(user1.getUserName()));
         assertTrue("User2 should be registered", userManager3.isRegistered(user2.getUserName()));
 
-        userManager2.logout(user1);
+        userManager2.logout(user1, l2);
 
-        assertEquals("Only one client location of user1 should exist", 1, clientManager1.getNodeLocations(user1).size());
+        assertEquals("Only one client location of user1 should exist", 1, nodeManager1.getNodeLocations(user1.getUserName()).size());
 
         assertTrue("User1 should still be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should still be registered", userManager2.isRegistered(user1.getUserName()));
         assertTrue("User2 should be registered", userManager3.isRegistered(user2.getUserName()));
 
-        userManager1.logout(user1);
+        userManager1.logout(user1, l1);
 
         // all users should still be registered since logout should not remove the public key
         assertTrue("User1 should still be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should still be registered", userManager2.isRegistered(user1.getUserName()));
         assertTrue("User2 should still be registered", userManager3.isRegistered(user2.getUserName()));
 
-        userManager3.logout(user2);
+        userManager3.logout(user2, l3);
 
         // all users should still be registered since logout should not remove the public key
         assertTrue("User1 should still be registered", userManager1.isRegistered(user1.getUserName()));
         assertTrue("User1 should still be registered", userManager2.isRegistered(user1.getUserName()));
         assertTrue("User2 should still be registered", userManager3.isRegistered(user2.getUserName()));
 
-        assertEquals("ClientLocations should not be removed", 0, clientManager1.getNodeLocations(user1).size());
-        assertEquals("ClientLocations should not be removed", 0, clientManager2.getNodeLocations(user1).size());
-        assertEquals("ClientLocations should not be removed", 0, clientManager3.getNodeLocations(user2).size());
+        assertEquals("ClientLocations should not be removed", 0, nodeManager1.getNodeLocations(user1.getUserName()).size());
+        assertEquals("ClientLocations should not be removed", 0, nodeManager2.getNodeLocations(user1.getUserName()).size());
+        assertEquals("ClientLocations should not be removed", 0, nodeManager3.getNodeLocations(user2.getUserName()).size());
     }
 }
