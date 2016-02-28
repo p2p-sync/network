@@ -14,7 +14,7 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import org.rmatil.sync.network.core.exception.ConnectionException;
 import org.rmatil.sync.network.core.exception.ConnectionFailedException;
-import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
+import org.rmatil.sync.network.core.messaging.EncryptedDataReplyHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public class Connection {
 
     protected ConnectionConfiguration config;
 
-    protected ObjectDataReplyHandler objectDataReplyHandler;
+    protected EncryptedDataReplyHandler encryptedDataReplyHandler;
 
     public static boolean isPortAvailable(int port) {
         if (port < MIN_PORT_NUMBER || port > MAX_PORT_NUMBER) {
@@ -110,12 +110,12 @@ public class Connection {
     }
 
     /**
-     * @param config                 The connection configuration
-     * @param objectDataReplyHandler The object data reply handler which is attached to the peer when opening the connection
+     * @param config                    The connection configuration
+     * @param encryptedDataReplyHandler The object data reply handler which is attached to the peer when opening the connection
      */
-    public Connection(ConnectionConfiguration config, ObjectDataReplyHandler objectDataReplyHandler) {
+    public Connection(ConnectionConfiguration config, EncryptedDataReplyHandler encryptedDataReplyHandler) {
         this.config = config;
-        this.objectDataReplyHandler = objectDataReplyHandler;
+        this.encryptedDataReplyHandler = encryptedDataReplyHandler;
     }
 
     /**
@@ -197,9 +197,9 @@ public class Connection {
         // TODO: 5. decrypt private key with secret key from user
         // TODO: 6. set public-private keypair in the DHT
 
-        if (null != this.objectDataReplyHandler) {
-            logger.info("Setting ObjectDataReplyHandler " + this.objectDataReplyHandler.getClass().getName());
-            this.peerDHT.peer().objectDataReply(this.objectDataReplyHandler);
+        if (null != this.encryptedDataReplyHandler) {
+            logger.info("Setting ObjectDataReplyHandler " + this.encryptedDataReplyHandler.getClass().getName());
+            this.peerDHT.peer().objectDataReply(this.encryptedDataReplyHandler);
         }
 
         // set storage layer protection
@@ -304,8 +304,6 @@ public class Connection {
      * @return The future
      */
     public FutureDirect sendDirect(PeerAddress receiverAddress, Object dataToSend) {
-        // TODO: sign & encrypt files
-
         return this.peerDHT
                 .peer()
                 .sendDirect(receiverAddress)

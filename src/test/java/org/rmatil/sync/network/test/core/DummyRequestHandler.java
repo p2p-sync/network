@@ -36,6 +36,7 @@ public class DummyRequestHandler implements IRequestCallback {
                         this.client.getPeerAddress()
                 ),
                 new NodeLocation(
+                        this.client.getUser().getUserName(),
                         this.request.getClientDevice().getClientDeviceId(),
                         this.request.getClientDevice().getPeerAddress()
                 )
@@ -44,7 +45,7 @@ public class DummyRequestHandler implements IRequestCallback {
         logger.info("Sending back a dummy response for request " + this.request.getExchangeId());
 
         this.client.sendDirect(
-                this.request.getClientDevice().getPeerAddress(),
+                response.getReceiverAddress(),
                 response
         );
     }

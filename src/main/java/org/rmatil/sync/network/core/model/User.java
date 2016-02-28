@@ -2,7 +2,7 @@ package org.rmatil.sync.network.core.model;
 
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.core.exception.SecurityException;
-import org.rmatil.sync.network.core.security.encryption.Pbkdf2Factory;
+import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesKeyFactory;
 
 import javax.crypto.SecretKey;
 import java.security.KeyPair;
@@ -29,11 +29,11 @@ public class User implements IUser {
      * Note, that since a salt is used to generate the password, multiple creation
      * of the same user object will result in different secret keys.
      *
-     * @param userName        The user name of the user
-     * @param password        The password of the user
-     * @param salt            The salt to use for generating a secret key
-     * @param publicKey       The public key of the user
-     * @param privateKey      The private key of the user
+     * @param userName      The user name of the user
+     * @param password      The password of the user
+     * @param salt          The salt to use for generating a secret key
+     * @param publicKey     The public key of the user
+     * @param privateKey    The private key of the user
      * @param nodeLocations A list of node locations
      *
      * @throws SecurityException If generating the symmetric key from the password failed
@@ -46,7 +46,7 @@ public class User implements IUser {
         this.publicKey = publicKey;
         this.privateKey = privateKey;
         this.nodeLocations = nodeLocations;
-        this.secretKey = Pbkdf2Factory.generateKey(this.password, salt);
+        this.secretKey = AesKeyFactory.generateKey(this.password, salt);
     }
 
     @Override

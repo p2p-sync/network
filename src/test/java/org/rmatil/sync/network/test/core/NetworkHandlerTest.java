@@ -91,6 +91,7 @@ public class NetworkHandlerTest extends BaseTest {
             throws ExecutionException, InterruptedException {
         List<NodeLocation> nodeLocations = new ArrayList<>();
         nodeLocations.add(new NodeLocation(
+                client2.getUser().getUserName(),
                 client2.getClientDeviceId(),
                 client2.getPeerAddress()
         ));
@@ -123,6 +124,7 @@ public class NetworkHandlerTest extends BaseTest {
             throws InterruptedException {
         List<NodeLocation> nodeLocations = new ArrayList<>();
         nodeLocations.add(new NodeLocation(
+                client1.getUser().getUserName(),
                 client1.getClientDeviceId(),
                 client1.getPeerAddress()
         ));

@@ -3,10 +3,13 @@ package org.rmatil.sync.network.test.core;
 import net.tomp2p.futures.FutureDirect;
 import org.junit.After;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.rmatil.sync.network.api.IRequest;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.core.Node;
+import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.messaging.ObjectDataReplyHandler;
 import org.rmatil.sync.network.core.model.ClientDevice;
 import org.rmatil.sync.network.core.model.NodeLocation;
@@ -37,6 +40,9 @@ public class NodeTest extends BaseTest {
 
     protected static IUser user;
     protected static IUser user2;
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     @BeforeClass
     public static void setUp()
@@ -114,7 +120,7 @@ public class NodeTest extends BaseTest {
 
         assertTrue("IPv4_1 client did not succeed to start", succeededV4_1);
 
-        NodeLocation ipV4_1Client = new NodeLocation(UUID.randomUUID(), nodeIpV4_1.getPeerAddress());
+        NodeLocation ipV4_1Client = new NodeLocation(user.getUserName(), UUID.randomUUID(), nodeIpV4_1.getPeerAddress());
 
         boolean succeededV4 = nodeIpV4_2.start(ipV4_1Client.getIpAddress(), ipV4_1Client.getPort());
         assertTrue("IPv4 2 client did not succeed to start", succeededV4);
@@ -123,7 +129,7 @@ public class NodeTest extends BaseTest {
     }
 
     @Test
-    public void testSendDirect()
+    public void testSendDirectException()
             throws InterruptedException, IOException, ClassNotFoundException, InvalidKeyException {
 
         UUID exchangeId = UUID.randomUUID();
@@ -147,6 +153,7 @@ public class NodeTest extends BaseTest {
 
         List<NodeLocation> receiver = new ArrayList<>();
         receiver.add(new NodeLocation(
+                user2.getUserName(),
                 nodeIpV4_2.getClientDeviceId(),
                 nodeIpV4_2.getPeerAddress()
         ));
@@ -172,7 +179,75 @@ public class NodeTest extends BaseTest {
 
         assertEquals("Size of callbackHandler should be one, since the response was not yet processed", 1, nodeIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().size());
 
-        FutureDirect futureDirect = nodeIpV4_1.sendDirect(request.getReceiverAddresses().iterator().next().getPeerAddress(), request);
+        // this should throw an exception since no public key is registered in the node manager
+        thrown.expect(ObjectSendFailedException.class);
+        FutureDirect futureDirect = nodeIpV4_1.sendDirect(
+                request.getReceiverAddresses().iterator().next(),
+                request
+        );
+        futureDirect.await();
+    }
+
+    @Test
+    public void testSendDirect()
+            throws InterruptedException, IOException, ClassNotFoundException, InvalidKeyException {
+
+        UUID exchangeId = UUID.randomUUID();
+
+        // Set up "Protocol"
+        ObjectDataReplyHandler replyHandler1 = new ObjectDataReplyHandler(nodeIpV4_1);
+        replyHandler1.addRequestCallbackHandler(DummyRequest.class, DummyRequestHandler.class);
+
+        ObjectDataReplyHandler replyHandler2 = new ObjectDataReplyHandler(nodeIpV4_2);
+        replyHandler2.addRequestCallbackHandler(DummyRequest.class, DummyRequestHandler.class);
+
+        // set object data reply handler on both sides
+        nodeIpV4_1.setObjectDataReplyHandler(replyHandler1);
+        nodeIpV4_2.setObjectDataReplyHandler(replyHandler2);
+
+        boolean c1 = nodeIpV4_1.start();
+        boolean c2 = nodeIpV4_2.start();
+
+        assertTrue("Client1 did not succeed to start", c1);
+        assertTrue("Client2 did not succeed to start", c2);
+
+        // login user to set public & private key for encryption
+        nodeIpV4_2.getUserManager().login(user2, new NodeLocation(user2.getUserName(), nodeIpV4_2.getClientDeviceId(), nodeIpV4_2.getPeerAddress()));
+
+        List<NodeLocation> receiver = new ArrayList<>();
+        receiver.add(new NodeLocation(
+                user2.getUserName(),
+                nodeIpV4_2.getClientDeviceId(),
+                nodeIpV4_2.getPeerAddress()
+        ));
+
+        IRequest request = new DummyRequest(
+                exchangeId,
+                new ClientDevice(
+                        nodeIpV4_1.getUser().getUserName(),
+                        nodeIpV4_1.getClientDeviceId(),
+                        nodeIpV4_1.getPeerAddress()
+                ),
+                receiver
+        );
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        // now we wait on client 1 for the response
+        replyHandler1.addResponseCallbackHandler(exchangeId, response -> {
+            assertEquals("ExchangeId returned should be the same as sent", exchangeId, response.getExchangeId());
+            nodeIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().remove(response.getExchangeId());
+            latch.countDown();
+        });
+
+        assertEquals("Size of callbackHandler should be one, since the response was not yet processed", 1, nodeIpV4_1.getObjectDataReplyHandler().getResponseCallbackHandlers().size());
+
+        // this should throw an exception since no public key is registered in the node manager
+        thrown.expect(ObjectSendFailedException.class);
+        FutureDirect futureDirect = nodeIpV4_1.sendDirect(
+                request.getReceiverAddresses().iterator().next(),
+                request
+        );
         futureDirect.await();
 
         assertFalse("Future Direct should not have been failed (" + futureDirect.failedReason() + ")", futureDirect.isFailed());
