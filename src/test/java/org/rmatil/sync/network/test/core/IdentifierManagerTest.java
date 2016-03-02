@@ -210,6 +210,54 @@ public class IdentifierManagerTest {
     }
 
     @Test
+    public void testMoveValue()
+            throws InputOutputException {
+        identifierManager.addIdentifier(KEY_1, VALUE_1);
+
+        UUID value1 = identifierManager.getValue(KEY_1);
+        UUID value2 = identifierManager2.getValue(KEY_1);
+
+        assertNotNull("Result should not be null", value1);
+        assertEquals("Result should be equal", VALUE_1, value1);
+        assertNotNull("Result should not be null", value2);
+        assertEquals("Result should be equal", VALUE_1, value2);
+
+        String key1 = identifierManager.getKey(VALUE_1);
+        String key2 = identifierManager2.getKey(VALUE_1);
+
+        assertNotNull("Result should not be null", key1);
+        assertEquals("Result should be equal", KEY_1, key1);
+        assertNotNull("Result should not be null", key2);
+        assertEquals("Result should be equal", KEY_1, key2);
+
+        identifierManager.moveKey(KEY_1, KEY_2);
+
+        value1 = identifierManager.getValue(KEY_2);
+        value2 = identifierManager2.getValue(KEY_2);
+
+        assertNotNull("Result should not be null", value1);
+        assertEquals("Result should be equal", VALUE_1, value1);
+        assertNotNull("Result should not be null", value2);
+        assertEquals("Result should be equal", VALUE_1, value2);
+
+        key1 = identifierManager.getKey(VALUE_1);
+        key2 = identifierManager2.getKey(VALUE_1);
+
+        assertNotNull("Result should not be null", key1);
+        assertEquals("Result should be equal", KEY_2, key1);
+        assertNotNull("Result should not be null", key2);
+        assertEquals("Result should be equal", KEY_2, key2);
+    }
+
+    @Test
+    public void testMoveNonExistingValue()
+            throws InputOutputException {
+
+        thrown.expect(InputOutputException.class);
+        identifierManager.moveKey(KEY_1, KEY_2);
+    }
+
+    @Test
     public void testAccessForOtherUsers()
             throws InputOutputException {
         identifierManager.addIdentifier(KEY_1, VALUE_1);

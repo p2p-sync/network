@@ -94,6 +94,20 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     }
 
     @Override
+    public void moveKey(String oldKey, String newKey)
+            throws InputOutputException {
+        UUID value = this.getValue(oldKey);
+
+        if (null == value) {
+            throw new InputOutputException("Could not move value from " + oldKey + " to " + newKey + ": No value attached to the old key");
+        }
+
+        // move data
+        this.addIdentifier(newKey, value);
+        this.removeIdentifier(oldKey);
+    }
+
+    @Override
     public synchronized UUID getValue(String key)
             throws InputOutputException {
         DhtPathElement keyDhtPathElement = new DhtPathElement(

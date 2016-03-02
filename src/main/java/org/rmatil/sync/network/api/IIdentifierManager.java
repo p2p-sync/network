@@ -32,6 +32,18 @@ public interface IIdentifierManager<K, V> {
             throws InputOutputException;
 
     /**
+     * Moves the value associated with the given old key
+     * to the location associated with the new key
+     *
+     * @param oldKey The old key
+     * @param newKey The new key
+     *
+     * @throws InputOutputException If moving fails
+     */
+    void moveKey(K oldKey, K newKey)
+            throws InputOutputException;
+
+    /**
      * Get the value of the given key.
      *
      * @param key The key from which to get the value
