@@ -48,14 +48,14 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
             throws InputOutputException {
         DhtPathElement keyDhtPathElement = new DhtPathElement(
                 this.username,
-                this.identifierContentKey,
-                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + key)
+                Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + key),
+                this.domainKey
         );
 
         DhtPathElement valueDhtPathElement = new DhtPathElement(
                 this.username,
-                this.identifierContentKey,
-                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + value)
+                Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + value),
+                this.domainKey
         );
 
         byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
@@ -71,8 +71,8 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
             throws InputOutputException {
         DhtPathElement keyDhtPathElement = new DhtPathElement(
                 this.username,
-                this.identifierContentKey,
-                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + key)
+                Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + key),
+                this.domainKey
         );
 
         this.storageAdapter.delete(keyDhtPathElement);
@@ -86,8 +86,8 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
         // there is a value associated -> remove it too
         DhtPathElement valueDhtPathElement = new DhtPathElement(
                 this.username,
-                this.identifierContentKey,
-                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + value)
+                Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + value),
+                this.domainKey
         );
 
         this.storageAdapter.delete(valueDhtPathElement);
@@ -112,8 +112,8 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
             throws InputOutputException {
         DhtPathElement keyDhtPathElement = new DhtPathElement(
                 this.username,
-                this.identifierContentKey,
-                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + key)
+                Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + key),
+                this.domainKey
         );
 
         byte[] uuidStringBytes = this.storageAdapter.read(keyDhtPathElement);
@@ -130,8 +130,8 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
             throws InputOutputException {
         DhtPathElement valueDhtPathElement = new DhtPathElement(
                 this.username,
-                this.identifierContentKey,
-                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + value)
+                Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + value),
+                this.domainKey
         );
 
         byte[] keyStringBytes = this.storageAdapter.read(valueDhtPathElement);
