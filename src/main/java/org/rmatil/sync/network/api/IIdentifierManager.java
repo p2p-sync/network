@@ -1,6 +1,5 @@
 package org.rmatil.sync.network.api;
 
-import org.rmatil.sync.network.core.model.IdentifierMap;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
 /**
@@ -54,15 +53,5 @@ public interface IIdentifierManager<K, V> {
      * @throws InputOutputException If accessing the storage layer failed
      */
     K getKey(V value)
-            throws InputOutputException;
-
-    /**
-     * Returns the complete key-value store
-     *
-     * @return The key value store
-     *
-     * @throws InputOutputException If accessing the storage layer failed
-     */
-    IdentifierMap<K, V> getIdentifierMap()
             throws InputOutputException;
 }

@@ -9,7 +9,6 @@ import org.rmatil.sync.network.config.Config;
 import org.rmatil.sync.network.core.Connection;
 import org.rmatil.sync.network.core.IdentifierManager;
 import org.rmatil.sync.network.core.model.NodeLocation;
-import org.rmatil.sync.network.core.model.IdentifierMap;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
@@ -59,6 +58,9 @@ public class IdentifierManagerTest {
 
     protected static final String KEY_3   = "How are you?";
     protected static final UUID   VALUE_3 = UUID.randomUUID();
+
+    protected static final String NON_EXISTING_KEY   = "Not existing?";
+    protected static final UUID   NON_EXISTING_VALUE = UUID.randomUUID();
 
     @BeforeClass
     public static void setUp()
@@ -175,31 +177,36 @@ public class IdentifierManagerTest {
     }
 
     @Test
-    public void testGetIdentifierMap()
+    public void testGetKeyAndGetValue()
             throws InputOutputException {
         identifierManager.addIdentifier(KEY_1, VALUE_1);
-        identifierManager.addIdentifier(KEY_2, VALUE_2);
 
-        IdentifierMap<String, UUID> result = identifierManager.getIdentifierMap();
-        IdentifierMap<String, UUID> result2 = identifierManager2.getIdentifierMap();
-        IdentifierMap<String, UUID> result3 = identifierManager3.getIdentifierMap();
+        // user 1
+        UUID value1 = identifierManager.getValue(KEY_1);
+        UUID value2 = identifierManager2.getValue(KEY_1);
 
-        assertEquals("Result has not both locations in it", 2, result.getKeyMap().size());
-        assertEquals("Result has not both locations in it", 2, result.getValueMap().size());
-        assertEquals("Value1 should be contained", VALUE_1, result.getKeyMap().get(KEY_1));
-        assertEquals("Value2 should be contained", VALUE_2, result.getKeyMap().get(KEY_2));
-        assertEquals("Key1 should be contained", KEY_1, result.getValueMap().get(VALUE_1));
-        assertEquals("Key2 should be contained", KEY_2, result.getValueMap().get(VALUE_2));
+        assertNotNull("Result should not be null", value1);
+        assertEquals("Result should be equal", VALUE_1, value1);
+        assertNotNull("Result should not be null", value2);
+        assertEquals("Result should be equal", VALUE_1, value2);
 
-        assertEquals("Result has not both locations in it", 2, result2.getKeyMap().size());
-        assertEquals("Result has not both locations in it", 2, result2.getValueMap().size());
-        assertEquals("Value1 should be contained", VALUE_1, result2.getKeyMap().get(KEY_1));
-        assertEquals("Value2 should be contained", VALUE_2, result2.getKeyMap().get(KEY_2));
-        assertEquals("Key1 should be contained", KEY_1, result2.getValueMap().get(VALUE_1));
-        assertEquals("Key2 should be contained", KEY_2, result2.getValueMap().get(VALUE_2));
+        String key1 = identifierManager.getKey(VALUE_1);
+        String key2 = identifierManager2.getKey(VALUE_1);
 
-        assertEquals("Result has not both locations in it", 0, result3.getKeyMap().size());
-        assertEquals("Result has not both locations in it", 0, result3.getValueMap().size());
+        assertNotNull("Result should not be null", key1);
+        assertEquals("Result should be equal", KEY_1, key1);
+        assertNotNull("Result should not be null", key2);
+        assertEquals("Result should be equal", KEY_1, key2);
+    }
+
+    @Test
+    public void testGetNonExistingKeyAndValue()
+            throws InputOutputException {
+        UUID value = identifierManager.getValue(NON_EXISTING_KEY);
+        String key = identifierManager.getKey(NON_EXISTING_VALUE);
+
+        assertNull("Value should be null", value);
+        assertNull("Key should be null", key);
     }
 
     @Test

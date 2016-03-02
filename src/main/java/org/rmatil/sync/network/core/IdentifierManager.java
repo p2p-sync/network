@@ -1,14 +1,14 @@
 package org.rmatil.sync.network.core;
 
+import org.rmatil.sync.commons.hashing.Hash;
+import org.rmatil.sync.commons.hashing.HashingAlgorithm;
 import org.rmatil.sync.network.api.IIdentifierManager;
-import org.rmatil.sync.network.core.model.IdentifierMap;
-import org.rmatil.sync.network.core.serialize.ByteSerializer;
 import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.api.StorageType;
 import org.rmatil.sync.persistence.core.dht.DhtPathElement;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
@@ -46,90 +46,87 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     @Override
     public synchronized void addIdentifier(String key, UUID value)
             throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        DhtPathElement keyDhtPathElement = new DhtPathElement(
                 this.username,
                 this.identifierContentKey,
-                this.domainKey
+                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + key)
         );
 
-        IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
+        DhtPathElement valueDhtPathElement = new DhtPathElement(
+                this.username,
+                this.identifierContentKey,
+                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + value)
+        );
 
-        identifierMap.getKeyMap().put(key, value);
-        identifierMap.getValueMap().put(value, key);
+        byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
+        byte[] valueBytes = value.toString().getBytes(StandardCharsets.UTF_8);
 
-        byte[] bytes;
-        try {
-            bytes = ByteSerializer.toBytes(identifierMap);
-        } catch (IOException e) {
-            throw new InputOutputException(e);
-        }
-
-        this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
+        // store key and value
+        this.storageAdapter.persist(StorageType.FILE, keyDhtPathElement, valueBytes);
+        this.storageAdapter.persist(StorageType.FILE, valueDhtPathElement, keyBytes);
     }
 
     @Override
     public synchronized void removeIdentifier(String key)
             throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        DhtPathElement keyDhtPathElement = new DhtPathElement(
                 this.username,
                 this.identifierContentKey,
-                this.domainKey
+                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + key)
         );
 
-        IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
+        this.storageAdapter.delete(keyDhtPathElement);
 
-        UUID value = identifierMap.getKeyMap().get(key);
-        identifierMap.getKeyMap().remove(key);
-        identifierMap.getValueMap().remove(value);
-
-        byte[] bytes;
-        try {
-            bytes = ByteSerializer.toBytes(identifierMap);
-        } catch (IOException e) {
-            throw new InputOutputException(e);
+        // try to get associated value
+        UUID value = this.getValue(key);
+        if (null == value) {
+            return;
         }
 
-        this.storageAdapter.persist(StorageType.FILE, dhtPathElement, bytes);
+        // there is a value associated -> remove it too
+        DhtPathElement valueDhtPathElement = new DhtPathElement(
+                this.username,
+                this.identifierContentKey,
+                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + value)
+        );
+
+        this.storageAdapter.delete(valueDhtPathElement);
     }
 
     @Override
     public synchronized UUID getValue(String key)
             throws InputOutputException {
-        IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
+        DhtPathElement keyDhtPathElement = new DhtPathElement(
+                this.username,
+                this.identifierContentKey,
+                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + key)
+        );
 
-        return identifierMap.getKeyMap().get(key);
+        byte[] uuidStringBytes = this.storageAdapter.read(keyDhtPathElement);
+
+        if (0 == uuidStringBytes.length) {
+            return null;
+        }
+
+        return UUID.fromString(new String(uuidStringBytes, StandardCharsets.UTF_8));
     }
 
     @Override
     public synchronized String getKey(UUID value)
             throws InputOutputException {
-        IdentifierMap<String, UUID> identifierMap = this.getIdentifierMap();
-
-        return identifierMap.getValueMap().get(value);
-    }
-
-    @Override
-    public synchronized IdentifierMap<String, UUID> getIdentifierMap()
-            throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        DhtPathElement valueDhtPathElement = new DhtPathElement(
                 this.username,
                 this.identifierContentKey,
-                this.domainKey
+                Hash.hash(HashingAlgorithm.SHA_256, this.domainKey + value)
         );
 
-        byte[] bytes = this.storageAdapter.read(dhtPathElement);
+        byte[] keyStringBytes = this.storageAdapter.read(valueDhtPathElement);
 
-        if (0 == bytes.length) {
-            return new IdentifierMap<>();
+        if (0 == keyStringBytes.length) {
+            // value not found
+            return null;
         }
 
-        IdentifierMap<String, UUID> identifierMap;
-        try {
-            identifierMap = (IdentifierMap<String, UUID>) ByteSerializer.fromBytes(bytes);
-        } catch (IOException | ClassNotFoundException e) {
-            throw new InputOutputException(e);
-        }
-
-        return identifierMap;
+        return new String(keyStringBytes, StandardCharsets.UTF_8);
     }
 }
