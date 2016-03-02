@@ -50,13 +50,13 @@ public class IdentifierManagerTest {
     protected static NodeLocation l1;
     protected static NodeLocation l2;
 
-    protected static final String KEY_1   = "Hello there!";
+    protected static final String KEY_1   = "sharedWithOthers (read-write)/myFile.txt";
     protected static final UUID   VALUE_1 = UUID.randomUUID();
 
-    protected static final String KEY_2   = "Ou, look who's here!";
+    protected static final String KEY_2   = "sharedWithOthers (read-only)/myFile.txt";
     protected static final UUID   VALUE_2 = UUID.randomUUID();
 
-    protected static final String KEY_3   = "How are you?";
+    protected static final String KEY_3   = "myFile.txt/in/my/Directory.swp~";
     protected static final UUID   VALUE_3 = UUID.randomUUID();
 
     protected static final String NON_EXISTING_KEY   = "Not existing?";

@@ -75,22 +75,20 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
                 this.domainKey
         );
 
-        this.storageAdapter.delete(keyDhtPathElement);
-
         // try to get associated value
         UUID value = this.getValue(key);
-        if (null == value) {
-            return;
+        if (null != value) {
+            // there is a value associated -> remove it too
+            DhtPathElement valueDhtPathElement = new DhtPathElement(
+                    this.username,
+                    Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + value),
+                    this.domainKey
+            );
+
+            this.storageAdapter.delete(valueDhtPathElement);
         }
 
-        // there is a value associated -> remove it too
-        DhtPathElement valueDhtPathElement = new DhtPathElement(
-                this.username,
-                Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + value),
-                this.domainKey
-        );
-
-        this.storageAdapter.delete(valueDhtPathElement);
+        this.storageAdapter.delete(keyDhtPathElement);
     }
 
     @Override
@@ -103,8 +101,8 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
         }
 
         // move data
-        this.addIdentifier(newKey, value);
         this.removeIdentifier(oldKey);
+        this.addIdentifier(newKey, value);
     }
 
     @Override
