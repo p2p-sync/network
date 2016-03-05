@@ -111,7 +111,7 @@ public abstract class ANetworkHandler<T> implements INetworkHandler<T>, IRespons
                 this.notifiedClients.put(clientDevice, futureDirect);
 
             } catch (ObjectSendFailedException e) {
-                logger.error("Failed to send request to node " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Removing this node from connected node locations. Message: " + e.getMessage());
+                logger.error("Failed to send request to node " + entry.getClientDeviceId() + " (" + entry.getPeerAddress().inetAddress().getHostAddress() + ":" + entry.getPeerAddress().tcpPort() + "). Removing this node from connected node locations. Message: " + e.getMessage(), e);
                 try {
                     this.node.getNodeManager().removeNodeLocation(entry);
                 } catch (InputOutputException e1) {
