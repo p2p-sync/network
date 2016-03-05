@@ -262,7 +262,8 @@ public class Node implements INode {
                             + ":"
                             + receiverAddress.getPort()
                             + "). Aborting to send request for this receiver. Message: "
-                            + e.getMessage()
+                            + e.getMessage(),
+                    e
             );
         }
     }
