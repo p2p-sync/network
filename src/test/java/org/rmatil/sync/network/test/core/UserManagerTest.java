@@ -7,14 +7,14 @@ import org.junit.Test;
 import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.config.Config;
-import org.rmatil.sync.network.core.NodeManager;
 import org.rmatil.sync.network.core.Connection;
+import org.rmatil.sync.network.core.NodeManager;
 import org.rmatil.sync.network.core.UserManager;
 import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.model.User;
 import org.rmatil.sync.network.test.core.base.BaseTest;
-import org.rmatil.sync.persistence.api.IStorageAdapter;
-import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
+import org.rmatil.sync.persistence.core.dht.secured.ISecuredDhtStorageAdapter;
+import org.rmatil.sync.persistence.core.dht.secured.SecuredDhtStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
 import java.io.IOException;
@@ -33,9 +33,9 @@ public class UserManagerTest {
     protected static PeerDHT peer2;
     protected static PeerDHT peer3;
 
-    protected static IStorageAdapter dhtStorageAdapter1;
-    protected static IStorageAdapter dhtStorageAdapter2;
-    protected static IStorageAdapter dhtStorageAdapter3;
+    protected static ISecuredDhtStorageAdapter dhtStorageAdapter1;
+    protected static ISecuredDhtStorageAdapter dhtStorageAdapter2;
+    protected static ISecuredDhtStorageAdapter dhtStorageAdapter3;
 
     protected static KeyPair keyPair1;
     protected static KeyPair keyPair2;
@@ -89,9 +89,9 @@ public class UserManagerTest {
         l2 = new NodeLocation(user1.getUserName(), UUID.randomUUID(), peer2.peerAddress());
         l3 = new NodeLocation(user2.getUserName(), UUID.randomUUID(), peer3.peerAddress());
 
-        dhtStorageAdapter1 = new DhtStorageAdapter(peer1);
-        dhtStorageAdapter2 = new DhtStorageAdapter(peer2);
-        dhtStorageAdapter3 = new DhtStorageAdapter(peer3);
+        dhtStorageAdapter1 = new SecuredDhtStorageAdapter(peer1);
+        dhtStorageAdapter2 = new SecuredDhtStorageAdapter(peer2);
+        dhtStorageAdapter3 = new SecuredDhtStorageAdapter(peer3);
 
         nodeManager1 = new NodeManager(
                 dhtStorageAdapter1,

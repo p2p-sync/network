@@ -1,14 +1,16 @@
 package org.rmatil.sync.network.core;
 
+import org.rmatil.sync.commons.hashing.Hash;
+import org.rmatil.sync.commons.hashing.HashingAlgorithm;
 import org.rmatil.sync.network.api.INodeManager;
 import org.rmatil.sync.network.api.IUser;
 import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.security.encryption.symmetric.ISymmetricEncryption;
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesEncryption;
 import org.rmatil.sync.network.core.serialize.ByteSerializer;
-import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.api.StorageType;
-import org.rmatil.sync.persistence.core.dht.DhtPathElement;
+import org.rmatil.sync.persistence.core.dht.secured.ISecuredDhtStorageAdapter;
+import org.rmatil.sync.persistence.core.dht.secured.SecuredDhtPathElement;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,7 @@ public class NodeManager implements INodeManager {
     /**
      * A storage adapter giving access to persisted locations
      */
-    protected IStorageAdapter storageAdapter;
+    protected ISecuredDhtStorageAdapter storageAdapter;
 
     /**
      * The content key where all locations of a particular user are stored
@@ -62,7 +64,7 @@ public class NodeManager implements INodeManager {
     protected ISymmetricEncryption aesEncryption;
 
 
-    public NodeManager(IStorageAdapter storageAdapter, String locationContentKey, String privateKeyContentKey, String publicKeyContentKey, String saltContentKey, String domainKey) {
+    public NodeManager(ISecuredDhtStorageAdapter storageAdapter, String locationContentKey, String privateKeyContentKey, String publicKeyContentKey, String saltContentKey, String domainKey) {
         this.storageAdapter = storageAdapter;
         this.locationContentKey = locationContentKey;
         this.privateKeyContentKey = privateKeyContentKey;
@@ -75,7 +77,7 @@ public class NodeManager implements INodeManager {
     @Override
     public void addNodeLocation(NodeLocation location)
             throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement dhtPathElement = new SecuredDhtPathElement(
                 location.getUsername(),
                 this.locationContentKey,
                 this.domainKey
@@ -104,7 +106,7 @@ public class NodeManager implements INodeManager {
     public void removeNodeLocation(NodeLocation location)
             throws InputOutputException {
         // private key must be used to access for write
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement dhtPathElement = new SecuredDhtPathElement(
                 location.getUsername(),
                 this.locationContentKey,
                 this.domainKey
@@ -126,7 +128,7 @@ public class NodeManager implements INodeManager {
     @Override
     public List<NodeLocation> getNodeLocations(String username)
             throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement dhtPathElement = new SecuredDhtPathElement(
                 username,
                 this.locationContentKey,
                 this.domainKey
@@ -152,8 +154,8 @@ public class NodeManager implements INodeManager {
     @Override
     public void addPrivateKey(IUser user)
             throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
-                user.getUserName() + user.getPassword(),
+        SecuredDhtPathElement dhtPathElement = new SecuredDhtPathElement(
+                Hash.hash(HashingAlgorithm.SHA_512, user.getUserName() + user.getSalt() + user.getPassword()),
                 this.privateKeyContentKey,
                 this.domainKey
         );
@@ -179,8 +181,8 @@ public class NodeManager implements INodeManager {
             throw new InputOutputException("User private key is required to fetch its private key");
         }
 
-        DhtPathElement dhtPathElement = new DhtPathElement(
-                user.getUserName() + user.getPassword(),
+        SecuredDhtPathElement dhtPathElement = new SecuredDhtPathElement(
+                Hash.hash(HashingAlgorithm.SHA_512, user.getUserName() + user.getSalt() + user.getPassword()),
                 this.privateKeyContentKey,
                 this.domainKey
         );
@@ -208,7 +210,7 @@ public class NodeManager implements INodeManager {
     public void addPublicKey(IUser user)
             throws InputOutputException {
 
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement dhtPathElement = new SecuredDhtPathElement(
                 user.getUserName(),
                 this.publicKeyContentKey,
                 this.domainKey
@@ -233,7 +235,7 @@ public class NodeManager implements INodeManager {
     @Override
     public PublicKey getPublicKey(String username)
             throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement dhtPathElement = new SecuredDhtPathElement(
                 username,
                 this.publicKeyContentKey,
                 this.domainKey
@@ -259,7 +261,7 @@ public class NodeManager implements INodeManager {
     @Override
     public void addSalt(IUser user)
             throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement dhtPathElement = new SecuredDhtPathElement(
                 user.getUserName(),
                 this.saltContentKey,
                 this.domainKey
@@ -278,7 +280,7 @@ public class NodeManager implements INodeManager {
     @Override
     public String getSalt(IUser user)
             throws InputOutputException {
-        DhtPathElement dhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement dhtPathElement = new SecuredDhtPathElement(
                 user.getUserName(),
                 this.saltContentKey,
                 this.domainKey
@@ -302,7 +304,7 @@ public class NodeManager implements INodeManager {
     }
 
     @Override
-    public IStorageAdapter getStorageAdapter() {
+    public ISecuredDhtStorageAdapter getStorageAdapter() {
         return this.storageAdapter;
     }
 

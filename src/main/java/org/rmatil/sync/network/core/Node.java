@@ -16,8 +16,7 @@ import org.rmatil.sync.network.core.security.encryption.asymmetric.rsa.RsaEncryp
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesEncryption;
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesKeyFactory;
 import org.rmatil.sync.network.core.serialize.ByteSerializer;
-import org.rmatil.sync.persistence.api.IStorageAdapter;
-import org.rmatil.sync.persistence.core.dht.DhtStorageAdapter;
+import org.rmatil.sync.persistence.core.dht.secured.SecuredDhtStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +88,10 @@ public class Node implements INode {
 
         logger.info("Successfully started node on address " + this.getPeerAddress().inetAddress().getHostAddress() + ":" + this.config.getPort());
 
-        IStorageAdapter dhtStorageAdapter = new DhtStorageAdapter(this.connection.getPeerDHT(), this.config.getCacheTtl());
+        SecuredDhtStorageAdapter dhtStorageAdapter = new SecuredDhtStorageAdapter(
+                this.connection.getPeerDHT(),
+                this.config.getCacheTtl()
+        );
         NodeLocation nodeLocation = new NodeLocation(
                 this.user.getUserName(),
                 this.clientDeviceId,

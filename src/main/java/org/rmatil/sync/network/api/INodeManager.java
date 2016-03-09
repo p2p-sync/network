@@ -1,7 +1,7 @@
 package org.rmatil.sync.network.api;
 
 import org.rmatil.sync.network.core.model.NodeLocation;
-import org.rmatil.sync.persistence.api.IStorageAdapter;
+import org.rmatil.sync.persistence.core.dht.secured.ISecuredDhtStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
 import java.security.PrivateKey;
@@ -19,7 +19,7 @@ public interface INodeManager {
      *
      * @return The storage manager
      */
-    IStorageAdapter getStorageAdapter();
+    ISecuredDhtStorageAdapter getStorageAdapter();
 
     /**
      * Adds a new location to the locations of the given user.

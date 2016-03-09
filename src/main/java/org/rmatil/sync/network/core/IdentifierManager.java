@@ -3,9 +3,9 @@ package org.rmatil.sync.network.core;
 import org.rmatil.sync.commons.hashing.Hash;
 import org.rmatil.sync.commons.hashing.HashingAlgorithm;
 import org.rmatil.sync.network.api.IIdentifierManager;
-import org.rmatil.sync.persistence.api.IStorageAdapter;
 import org.rmatil.sync.persistence.api.StorageType;
-import org.rmatil.sync.persistence.core.dht.DhtPathElement;
+import org.rmatil.sync.persistence.core.dht.secured.ISecuredDhtStorageAdapter;
+import org.rmatil.sync.persistence.core.dht.secured.SecuredDhtPathElement;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
 import java.nio.charset.StandardCharsets;
@@ -34,9 +34,9 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     /**
      * The storage adapter to write
      */
-    protected IStorageAdapter storageAdapter;
+    protected ISecuredDhtStorageAdapter storageAdapter;
 
-    public IdentifierManager(IStorageAdapter storageAdapter, String username, String identifierContentKey, String domainKey) {
+    public IdentifierManager(ISecuredDhtStorageAdapter storageAdapter, String username, String identifierContentKey, String domainKey) {
         this.storageAdapter = storageAdapter;
         this.username = username;
         this.identifierContentKey = identifierContentKey;
@@ -46,13 +46,13 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     @Override
     public synchronized void addIdentifier(String key, UUID value)
             throws InputOutputException {
-        DhtPathElement keyDhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement keyDhtPathElement = new SecuredDhtPathElement(
                 this.username,
                 Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + key),
                 this.domainKey
         );
 
-        DhtPathElement valueDhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement valueDhtPathElement = new SecuredDhtPathElement(
                 this.username,
                 Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + value),
                 this.domainKey
@@ -69,7 +69,7 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     @Override
     public synchronized void removeIdentifier(String key)
             throws InputOutputException {
-        DhtPathElement keyDhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement keyDhtPathElement = new SecuredDhtPathElement(
                 this.username,
                 Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + key),
                 this.domainKey
@@ -79,7 +79,7 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
         UUID value = this.getValue(key);
         if (null != value) {
             // there is a value associated -> remove it too
-            DhtPathElement valueDhtPathElement = new DhtPathElement(
+            SecuredDhtPathElement valueDhtPathElement = new SecuredDhtPathElement(
                     this.username,
                     Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + value),
                     this.domainKey
@@ -108,7 +108,7 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     @Override
     public synchronized UUID getValue(String key)
             throws InputOutputException {
-        DhtPathElement keyDhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement keyDhtPathElement = new SecuredDhtPathElement(
                 this.username,
                 Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + key),
                 this.domainKey
@@ -126,7 +126,7 @@ public class IdentifierManager implements IIdentifierManager<String, UUID> {
     @Override
     public synchronized String getKey(UUID value)
             throws InputOutputException {
-        DhtPathElement valueDhtPathElement = new DhtPathElement(
+        SecuredDhtPathElement valueDhtPathElement = new SecuredDhtPathElement(
                 this.username,
                 Hash.hash(HashingAlgorithm.SHA_256, this.identifierContentKey + value),
                 this.domainKey
