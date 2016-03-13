@@ -42,7 +42,7 @@ public class Connection {
      *
      * @see <a href="https://github.com/p2p-sync/network/issues/3">https://github.com/p2p-sync/network/issues/3</a>
      */
-    public static final int MAX_CONCURRENT_CONNECTIONS = 100;
+    public static final int MAX_CONCURRENT_CONNECTIONS = 80;
 
     /**
      * The lowes port which could be used, if available.
