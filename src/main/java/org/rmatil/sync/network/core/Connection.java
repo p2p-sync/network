@@ -255,7 +255,8 @@ public class Connection {
         if (futureDiscover.isFailed()) {
 
             if (this.config.isFirewalled) {
-                // TODO: implement UPnP
+                // TODO: implement https://github.com/p2p-sync/network/issues/6
+                logger.warn("Firewall support is not implemented yet");
             }
 
             this.close();
