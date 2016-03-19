@@ -3,6 +3,7 @@ package org.rmatil.sync.network.core.messaging;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import org.rmatil.sync.network.api.INodeManager;
+import org.rmatil.sync.network.api.IRequest;
 import org.rmatil.sync.network.api.IResponse;
 import org.rmatil.sync.network.core.exception.ObjectSendFailedException;
 import org.rmatil.sync.network.core.exception.SecurityException;
@@ -10,6 +11,7 @@ import org.rmatil.sync.network.core.model.EncryptedData;
 import org.rmatil.sync.network.core.security.encryption.asymmetric.rsa.RsaEncryption;
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesEncryption;
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesKeyFactory;
+import org.rmatil.sync.network.core.security.sign.rsa.RsaSign;
 import org.rmatil.sync.network.core.serialize.ByteSerializer;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
 
@@ -37,6 +39,7 @@ public class EncryptedDataReplyHandler implements ObjectDataReply {
 
     protected RsaEncryption rsaEncryption;
     protected AesEncryption aesEncryption;
+    protected RsaSign       rsaSign;
 
     /**
      * @param objectDataReplyHandler The object data reply handler to which the decrypted data should be passed
@@ -49,6 +52,8 @@ public class EncryptedDataReplyHandler implements ObjectDataReply {
         this.privateKey = rsaPrivateKey;
         this.rsaEncryption = new RsaEncryption();
         this.aesEncryption = new AesEncryption();
+        this.rsaSign = new RsaSign();
+
     }
 
     @Override
@@ -73,6 +78,27 @@ public class EncryptedDataReplyHandler implements ObjectDataReply {
 
         Object object = ByteSerializer.fromBytes(decryptedData);
 
+        if (object instanceof IRequest) {
+            RSAPublicKey senderPublicKey;
+            try {
+                senderPublicKey = (RSAPublicKey) this.nodeManager.getPublicKey(((IRequest) object).getClientDevice().getUserName());
+            } catch (InputOutputException e) {
+                throw new SecurityException(
+                        "Could not use public key of user "
+                                + ((IRequest) object).getClientDevice().getUserName()
+                                + " to verify the signature. Aborting forwarding of request. Message: "
+                                + e.getMessage()
+                );
+            }
+
+            // verify signature of plain data
+            boolean isValidSignature = this.rsaSign.verify(senderPublicKey, encryptedData.getSignature(), decryptedData);
+
+            if (! isValidSignature) {
+                throw new SecurityException("Invalid signature found for for message. Aborting forwarding of request");
+            }
+        }
+
         // -> invoke object data reply
         IResponse response = this.objectDataReplyHandler.reply(sender, object);
 
@@ -83,9 +109,9 @@ public class EncryptedDataReplyHandler implements ObjectDataReply {
 
         // encrypt the returned data
         // get public key from receiver to encrypt
-        RSAPublicKey publicKey;
+        RSAPublicKey receiverPublicKey;
         try {
-            publicKey = (RSAPublicKey) this.nodeManager.getPublicKey(response.getReceiverAddress().getUsername());
+            receiverPublicKey = (RSAPublicKey) this.nodeManager.getPublicKey(response.getReceiverAddress().getUsername());
         } catch (InputOutputException e) {
             throw new ObjectSendFailedException(
                     "Could not use public key of user "
@@ -96,10 +122,12 @@ public class EncryptedDataReplyHandler implements ObjectDataReply {
         }
 
         try {
+            byte[] plainData = ByteSerializer.toBytes(response);
+
             // encrypt the actual data using the AES key
             initVector = AesEncryption.generateInitializationVector();
             aesKey = AesKeyFactory.generateSecretKey();
-            byte[] aesEncryptedData = this.aesEncryption.encrypt(aesKey, initVector, ByteSerializer.toBytes(response));
+            byte[] aesEncryptedData = this.aesEncryption.encrypt(aesKey, initVector, plainData);
 
             // encrypt the AES key with RSA
             encodedAesKey = aesKey.getEncoded();
@@ -108,9 +136,11 @@ public class EncryptedDataReplyHandler implements ObjectDataReply {
             System.arraycopy(initVector, 0, symmetricKey, 0, initVector.length);
             System.arraycopy(encodedAesKey, 0, symmetricKey, initVector.length, encodedAesKey.length);
 
-            byte[] rsaEncryptedData = this.rsaEncryption.encrypt(publicKey, symmetricKey);
+            byte[] rsaEncryptedData = this.rsaEncryption.encrypt(receiverPublicKey, symmetricKey);
 
-            return new EncryptedData(rsaEncryptedData, aesEncryptedData);
+            byte[] signature = this.rsaSign.sign(this.privateKey, plainData);
+
+            return new EncryptedData(signature, rsaEncryptedData, aesEncryptedData);
         } catch (IOException | SecurityException e) {
             throw new ObjectSendFailedException(
                     "Failed to encrypt data for receiver "

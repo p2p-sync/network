@@ -15,6 +15,7 @@ import org.rmatil.sync.network.core.model.NodeLocation;
 import org.rmatil.sync.network.core.security.encryption.asymmetric.rsa.RsaEncryption;
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesEncryption;
 import org.rmatil.sync.network.core.security.encryption.symmetric.aes.AesKeyFactory;
+import org.rmatil.sync.network.core.security.sign.rsa.RsaSign;
 import org.rmatil.sync.network.core.serialize.ByteSerializer;
 import org.rmatil.sync.persistence.core.dht.secured.SecuredDhtStorageAdapter;
 import org.rmatil.sync.persistence.exceptions.InputOutputException;
@@ -43,7 +44,7 @@ public class Node implements INode {
 
     protected ObjectDataReplyHandler objectDataReplyHandler;
 
-    protected INodeManager nodeManager;
+    protected NodeManager nodeManager;
 
     protected IUserManager userManager;
 
@@ -51,6 +52,7 @@ public class Node implements INode {
 
     protected RsaEncryption rsaEncryption;
     protected AesEncryption aesEncryption;
+    protected RsaSign       rsaSign;
 
     public Node(ConnectionConfiguration config, IUser user, UUID uuid) {
         this.config = config;
@@ -58,6 +60,7 @@ public class Node implements INode {
         this.clientDeviceId = uuid;
         this.rsaEncryption = new RsaEncryption();
         this.aesEncryption = new AesEncryption();
+        this.rsaSign = new RsaSign();
     }
 
     @Override
@@ -70,6 +73,19 @@ public class Node implements INode {
     @Override
     public boolean start(String bootstrapIpAddress, Integer bootstrapPort)
             throws ConnectionException, ConnectionFailedException, InvalidKeyException {
+
+        // since the encrypted data reply handler
+        // requires a node manager but he requires
+        // a dht, we init the manager here already
+        // and modify it later
+        this.nodeManager = new NodeManager(
+                null,
+                Config.DEFAULT.getLocationsContentKey(),
+                Config.DEFAULT.getPrivateKeyContentKey(),
+                Config.DEFAULT.getPublicKeyContentKey(),
+                Config.DEFAULT.getSaltContentKey(),
+                Config.DEFAULT.getDomainKey()
+        );
 
         this.connection = new Connection(
                 this.config,
@@ -98,14 +114,7 @@ public class Node implements INode {
                 this.connection.getPeerDHT().peerAddress()
         );
 
-        this.nodeManager = new NodeManager(
-                dhtStorageAdapter,
-                Config.DEFAULT.getLocationsContentKey(),
-                Config.DEFAULT.getPrivateKeyContentKey(),
-                Config.DEFAULT.getPublicKeyContentKey(),
-                Config.DEFAULT.getSaltContentKey(),
-                Config.DEFAULT.getDomainKey()
-        );
+        this.nodeManager.setStorageAdapter(dhtStorageAdapter);
 
         this.identifierManager = new IdentifierManager(
                 dhtStorageAdapter,
@@ -239,11 +248,13 @@ public class Node implements INode {
         }
 
         try {
+            byte[] plainData = ByteSerializer.toBytes(data);
+
             // encrypt the actual data using the AES key
             byte[] initVector = AesEncryption.generateInitializationVector();
             SecretKey aesKey = AesKeyFactory.generateSecretKey();
 
-            byte[] aesEncryptedData = this.aesEncryption.encrypt(aesKey, initVector, ByteSerializer.toBytes(data));
+            byte[] aesEncryptedData = this.aesEncryption.encrypt(aesKey, initVector, plainData);
 
             // encrypt the AES key with RSA
             byte[] encodedAesKey = aesKey.getEncoded();
@@ -254,7 +265,16 @@ public class Node implements INode {
 
             byte[] rsaEncryptedData = this.rsaEncryption.encrypt(publicKey, symmetricKey);
 
-            return this.connection.sendDirect(receiverAddress.getPeerAddress(), new EncryptedData(rsaEncryptedData, aesEncryptedData));
+            byte[] signature = this.rsaSign.sign((RSAPrivateKey) this.user.getPrivateKey(), plainData);
+
+            return this.connection.sendDirect(
+                    receiverAddress.getPeerAddress(),
+                    new EncryptedData(
+                            signature,
+                            rsaEncryptedData,
+                            aesEncryptedData
+                    )
+            );
         } catch (IOException | SecurityException e) {
             throw new ObjectSendFailedException(
                     "Failed to encrypt data for receiver "

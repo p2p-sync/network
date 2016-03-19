@@ -74,6 +74,10 @@ public class NodeManager implements INodeManager {
         this.aesEncryption = new AesEncryption();
     }
 
+    public void setStorageAdapter(ISecuredDhtStorageAdapter securedDhtStorageAdapter) {
+        this.storageAdapter = securedDhtStorageAdapter;
+    }
+
     @Override
     public void addNodeLocation(NodeLocation location)
             throws InputOutputException {

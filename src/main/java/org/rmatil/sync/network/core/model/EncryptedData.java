@@ -8,6 +8,11 @@ import java.io.Serializable;
 public class EncryptedData implements Serializable {
 
     /**
+     * The signature of the data
+     */
+    protected byte[] signature;
+
+    /**
      * Holds the encrypted symmetric key,
      * i.e. an RSA-encrypted AES key
      */
@@ -19,12 +24,22 @@ public class EncryptedData implements Serializable {
     protected byte[] encryptedData;
 
     /**
+     * @param signature     The signature
      * @param encryptedKey  The RSA encrypted symmetric key
      * @param encryptedData The symmetrically encrypted data
      */
-    public EncryptedData(byte[] encryptedKey, byte[] encryptedData) {
+    public EncryptedData(byte[] signature, byte[] encryptedKey, byte[] encryptedData) {
+        this.signature = signature;
         this.encryptedKey = encryptedKey;
         this.encryptedData = encryptedData;
+    }
+
+    /**
+     * Returns the signature of the plain text
+     * @return The signature of the plain text message
+     */
+    public byte[] getSignature() {
+        return signature;
     }
 
     /**
