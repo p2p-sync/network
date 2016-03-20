@@ -16,6 +16,8 @@ import java.util.Map;
  */
 public class IdentifierMap<K, V> implements Serializable {
 
+    private static final long serialVersionUID = 2986346114343255342L;
+
     /**
      * The storage mapping keys to values
      */

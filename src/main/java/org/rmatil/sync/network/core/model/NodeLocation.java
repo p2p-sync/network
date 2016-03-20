@@ -13,6 +13,8 @@ import java.util.UUID;
  */
 public class NodeLocation implements Serializable {
 
+    private static final long serialVersionUID = - 4153216571589758601L;
+
     /**
      * The user to which this node belongs to
      */

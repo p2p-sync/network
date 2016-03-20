@@ -11,6 +11,8 @@ import java.util.UUID;
  */
 public class ClientDevice implements Serializable {
 
+    private static final long serialVersionUID = 6713880073018290509L;
+
     /**
      * The user name of the user to which this node belongs
      */

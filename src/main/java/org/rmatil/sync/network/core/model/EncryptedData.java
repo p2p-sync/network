@@ -7,6 +7,8 @@ import java.io.Serializable;
  */
 public class EncryptedData implements Serializable {
 
+    private static final long serialVersionUID = - 4560981371427777538L;
+
     /**
      * The signature of the data
      */
@@ -36,6 +38,7 @@ public class EncryptedData implements Serializable {
 
     /**
      * Returns the signature of the plain text
+     *
      * @return The signature of the plain text message
      */
     public byte[] getSignature() {

@@ -10,6 +10,8 @@ import java.io.Serializable;
  */
 public class Data implements Serializable {
 
+    private static final long serialVersionUID = 5946649142581562687L;
+
     /**
      * The byte content
      */
