@@ -3,12 +3,15 @@ package org.rmatil.sync.network.core.messaging;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import org.rmatil.sync.network.api.*;
+import org.rmatil.sync.network.core.ANetworkHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Use this handler to register multiple implementations of ObjectDataReply
@@ -33,17 +36,18 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     protected Map<Class<? extends IRequest>, Class<? extends IRequestCallback>> requestCallbackHandlers;
 
     /**
+     * A map of all currently running request callback handlers along
+     * with their start time
+     */
+    protected final Map<Long, UUID> runningRequestCallbacks;
+
+    /**
      * The node to use for sending back responses
      */
     protected INode node;
 
     /**
-     * A flag indicating that a master peer has been elected
-     */
-    protected boolean isMasterElected;
-
-    /**
-     * @param node                   The node used for sending back the responses of a request
+     * @param node                     The node used for sending back the responses of a request
      * @param responseCallbackHandlers A map of all registered responseCallbackHandlers. Specify as key the exchange id of the request
      *                                 the corresponding objectDataReply should be applied to if the request matches the class
      * @param requestCallbackHandlers  A map of all registered requestCallbackHandlers. Specify as key the class of the request for which the corresponding request callback handler should be invoked
@@ -52,6 +56,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
         this.node = node;
         this.responseCallbackHandlers = responseCallbackHandlers;
         this.requestCallbackHandlers = requestCallbackHandlers;
+        this.runningRequestCallbacks = new ConcurrentHashMap<>();
     }
 
     /**
@@ -61,6 +66,7 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
         this.node = node;
         this.responseCallbackHandlers = new HashMap<>();
         this.requestCallbackHandlers = new HashMap<>();
+        this.runningRequestCallbacks = new ConcurrentHashMap<>();
     }
 
     /**
@@ -121,21 +127,28 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
     }
 
     /**
-     * Returns true, if a master node is elected
+     * Returns true if request callback are running.
+     * False otherwise.
      *
-     * @return True, if a master is elected, false otherwise
+     * @return True, if other request callbacks are running, false otherwise
      */
-    public boolean isMasterElected() {
-        return isMasterElected;
-    }
+    public boolean areRequestCallbacksRunning() {
+        synchronized (this.runningRequestCallbacks) {
+            Iterator<Map.Entry<Long, UUID>> itr = this.runningRequestCallbacks.entrySet().iterator();
 
-    /**
-     * Set the flag if a master is selected
-     *
-     * @param masterElected True, if a master is selected in the network, false otherwise
-     */
-    public void setMasterElected(boolean masterElected) {
-        isMasterElected = masterElected;
+            while (itr.hasNext()) {
+                Map.Entry<Long, UUID> entry = itr.next();
+                // remove expired callbacks
+                if (entry.getKey() < System.currentTimeMillis()) {
+                    logger.trace("Callback with id " + entry.getValue() + " will likely not be running anymore. Started at " + entry.getKey() + ", now is " + System.currentTimeMillis());
+                    itr.remove();
+                } else {
+                    logger.trace("Callback with id " + entry.getValue() + " is still running. Started at " + entry.getKey() + ", now is " + System.currentTimeMillis());
+                }
+            }
+
+            return ! this.runningRequestCallbacks.isEmpty();
+        }
     }
 
     @Override
@@ -157,6 +170,11 @@ public class ObjectDataReplyHandler implements ObjectDataReply {
                 Thread thread = new Thread(requestCallback);
                 thread.setName("RequestCallback for request " + ((IRequest) request).getExchangeId());
                 thread.start();
+
+                this.runningRequestCallbacks.put(
+                        System.currentTimeMillis() + ANetworkHandler.MAX_WAITING_TIME,
+                        ((IRequest) request).getExchangeId()
+                );
 
 
                 return null;
