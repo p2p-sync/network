@@ -11,9 +11,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: org.rmatil.sync.commons:sync-commons:0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.rmatil.sync.commons:sync-commons:1.0.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:18.0" level="project" />
-    <orderEntry type="library" name="Maven: org.rmatil.sync.persistence:sync-persistence:0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.rmatil.sync.persistence:sync-persistence:1.0.0" level="project" />
     <orderEntry type="library" name="Maven: org.bouncycastle:bcprov-jdk15on:1.53" level="project" />
     <orderEntry type="library" name="Maven: net.tomp2p:tomp2p-dht:5.0-Beta8" level="project" />
     <orderEntry type="library" name="Maven: io.netty:netty-transport:4.0.28.Final" level="project" />
